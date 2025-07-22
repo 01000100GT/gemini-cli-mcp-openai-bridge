@@ -1,0 +1,80 @@
+{
+  "_comment": "多账号配置示例文件",
+  "_description": "此文件展示如何配置多个Google账号进行Gemini 2.5 Pro模型的循环使用",
+  
+  "accounts": [
+    {
+      "id": "account_1",
+      "name": "主账号",
+      "authType": "gemini-api-key",
+      "apiKey": "YOUR_GEMINI_API_KEY_1",
+      "status": "active",
+      "proUsageCount": 0,
+      "proQuotaLimit": 50,
+      "_comment": "使用Gemini API Key认证的账号"
+    },
+    {
+      "id": "account_2",
+      "name": "备用账号1",
+      "authType": "gemini-api-key",
+      "apiKey": "YOUR_GEMINI_API_KEY_2",
+      "status": "active",
+      "proUsageCount": 0,
+      "proQuotaLimit": 50
+    },
+    {
+      "id": "account_3",
+      "name": "备用账号2",
+      "authType": "vertex-ai",
+      "projectId": "your-gcp-project-id",
+      "status": "active",
+      "proUsageCount": 0,
+      "proQuotaLimit": 100,
+      "_comment": "使用Vertex AI认证的账号，通常有更高的配额"
+    },
+    {
+      "id": "account_4",
+      "name": "OAuth账号",
+      "authType": "oauth-personal",
+      "status": "active",
+      "proUsageCount": 0,
+      "proQuotaLimit": 30,
+      "_comment": "使用OAuth认证的个人账号"
+    }
+  ],
+  
+  "enableFlashFallback": true,
+  "flashFallbackModel": "gemini-2.5-flash",
+  
+  "proModels": [
+    "gemini-2.5-pro",
+    "gemini-1.5-pro"
+  ],
+  
+  "rotationStrategy": "round_robin",
+  "_rotationStrategyOptions": {
+    "round_robin": "按顺序轮换账号",
+    "least_used": "优先使用使用次数最少的账号",
+    "random": "随机选择可用账号"
+  },
+  
+  "_usage": {
+    "environment_variable": "将此配置设置为环境变量 GEMINI_MULTI_ACCOUNTS",
+    "example": "export GEMINI_MULTI_ACCOUNTS='$(cat multi-account-config.json)'",
+    "command_line": "使用 --enable-multi-account 启用多账号模式"
+  },
+  
+  "_additional_env_vars": {
+    "GEMINI_FLASH_FALLBACK_MODEL": "设置Flash回退模型",
+    "GEMINI_ROTATION_STRATEGY": "设置轮换策略",
+    "GEMINI_ENABLE_FLASH_FALLBACK": "设置为false禁用Flash回退"
+  },
+  
+  "_notes": [
+    "每个账号的proQuotaLimit应根据实际的API配额设置",
+    "建议混合使用不同类型的认证方式以提高可用性",
+    "Vertex AI账号通常有更高的配额限制",
+    "系统会自动跟踪每个账号的使用情况",
+    "当所有Pro账号配额用完时，会自动切换到Flash模型（如果启用）"
+  ]
+}

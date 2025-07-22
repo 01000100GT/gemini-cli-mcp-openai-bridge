@@ -19,9 +19,11 @@ import { loadSettings, type Settings } from './config/settings.js';
 import { loadExtensions, type Extension } from './config/extension.js';
 import { getCliVersion } from './utils/version.js';
 import { loadServerConfig } from './config/config.js';
+import { EnhancedConfig, createEnhancedConfig } from './config/enhancedConfig.js';
+import { loadMultiAccountConfigFromEnv } from './config/multiAccountManager.js';
 import { GcliMcpBridge } from './bridge/bridge.js';
 import { createOpenAIRouter } from './bridge/openai.js';
-import express from 'express';
+import express = require('express');
 import { logger } from './utils/logger.js';
 import { type SecurityPolicy } from './types.js';
 import yargs from 'yargs';
@@ -112,6 +114,28 @@ async function startMcpServer() {
         "Bypass interactive safety confirmations for 'yolo' mode and MCP proxy usage.",
       default: false,
     })
+    // 多账号管理选项
+    .option('enable-multi-account', {
+      type: 'boolean',
+      description: 'Enable multi-account management for Gemini 2.5 Pro rotation.',
+      default: false,
+    })
+    .option('config-file', {
+      type: 'string',
+      description: 'Path to multi-account configuration file (JSON format).',
+      default: 'multi-account-config.json',
+    })
+    .option('account-rotation-strategy', {
+      type: 'string',
+      description: 'Account rotation strategy.',
+      choices: ['round_robin', 'least_used', 'random'],
+      default: 'round_robin',
+    })
+    .option('disable-flash-fallback', {
+      type: 'boolean',
+      description: 'Disable Flash model fallback when all Pro accounts are exhausted.',
+      default: false,
+    })
     .help()
     .alias('help', '?').argv;
 
@@ -185,7 +209,8 @@ async function startMcpServer() {
     await getInteractiveConfirmation();
   }
 
-  const config = await loadServerConfig(
+  // 加载基础配置
+  const baseConfig = await loadServerConfig(
     settings.merged,
     extensions,
     sessionId,
@@ -195,11 +220,70 @@ async function startMcpServer() {
     targetDir,
   );
 
-  // 配置 Flash 模型自动回退处理器，用于处理配额限制时的模型切换
-  config.setFlashFallbackHandler(async (currentModel: string, fallbackModel: string): Promise<boolean> => {
-    logger.warn(`⚡ 检测到配额限制，自动从 ${currentModel} 切换到 ${fallbackModel}`);
-    return true; // 自动接受回退
-  });
+  // 创建增强配置（支持多账号管理）
+  let config: EnhancedConfig;
+  if (argv['enable-multi-account']) {
+    logger.info('🔄 启用多账号管理模式');
+    
+    // 加载多账号配置
+    let multiAccountConfig;
+    const configFile = argv['config-file'];
+    
+    try {
+      // 尝试从指定的配置文件加载
+      if (configFile && configFile !== 'multi-account-config.json') {
+        logger.info(`📄 从配置文件加载多账号配置: ${configFile}`);
+        const fs = await import('fs');
+        const path = await import('path');
+        const configPath = path.resolve(configFile);
+        
+        if (fs.existsSync(configPath)) {
+          const configContent = fs.readFileSync(configPath, 'utf-8');
+          multiAccountConfig = JSON.parse(configContent);
+          logger.info('✅ 配置文件加载成功');
+        } else {
+          logger.warn(`⚠️ 配置文件不存在: ${configPath}，回退到环境变量配置`);
+          multiAccountConfig = loadMultiAccountConfigFromEnv();
+        }
+      } else {
+        // 从环境变量加载
+        multiAccountConfig = loadMultiAccountConfigFromEnv();
+      }
+    } catch (error) {
+      logger.error(`❌ 配置文件解析失败: ${error instanceof Error ? error.message : String(error)}`);
+      logger.info('🔄 回退到环境变量配置');
+      multiAccountConfig = loadMultiAccountConfigFromEnv();
+    }
+    
+    // 应用命令行参数
+    if (argv['account-rotation-strategy']) {
+      multiAccountConfig.rotationStrategy = argv['account-rotation-strategy'] as any;
+    }
+    if (argv['disable-flash-fallback']) {
+      multiAccountConfig.enableFlashFallback = false;
+    }
+    
+    config = createEnhancedConfig(baseConfig, multiAccountConfig);
+    
+    // 显示账号统计信息
+    const stats = config.getAccountStats();
+    if (stats) {
+      logger.info(`📊 账号统计: ${stats.activeAccounts}/${stats.totalAccounts} 个账号可用`);
+      logger.info(`📈 Pro配额使用: ${stats.totalProUsage}/${stats.totalProQuota}`);
+    }
+  } else {
+    // 使用标准配置，但仍然创建EnhancedConfig以保持兼容性
+    config = createEnhancedConfig(baseConfig);
+  }
+
+  // 如果不是多账号模式，设置简单的Flash回退处理器
+  if (!argv['enable-multi-account']) {
+    config.setFlashFallbackHandler(async (currentModel: string, fallbackModel: string): Promise<boolean> => {
+      logger.warn(`⚡ 检测到配额限制，自动从 ${currentModel} 切换到 ${fallbackModel}`);
+      return true; // 自动接受回退
+    });
+  }
+  // 多账号模式下，EnhancedConfig会自动处理Flash回退逻辑
 
   // REFACTORED: Authentication logic with improved verbosity and error handling.
   let selectedAuthType = settings.merged.selectedAuthType;

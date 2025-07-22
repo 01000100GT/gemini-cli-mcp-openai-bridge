@@ -55,7 +55,43 @@ gemini-cli-bridge --host=127.0.0.1 --port=9000 --debug
 
 # Use a faster model for tool calls and load internal GEMINI.md prompts
 gemini-cli-bridge --tools-model=gemini-2.5-flash --use-internal-prompt
+
+# Start with multi-account management for Gemini 2.5 Pro rotation
+gemini-cli-bridge --enable-multi-account --account-rotation-strategy=round_robin
+
+# Start with custom multi-account configuration file
+gemini-cli-bridge --enable-multi-account --config-file=my-accounts.json
 ```
+
+### Multi-Account Management
+
+The bridge server supports multi-account management to automatically rotate between multiple Gemini accounts when using Pro models, helping to manage quota limits effectively.
+
+```bash
+# Enable multi-account mode with environment variable configuration
+npm run start:multi
+
+# Enable multi-account mode with custom configuration file
+npm run start:multi-account
+
+# Or use direct command with options
+gemini-cli-bridge --enable-multi-account \
+  --config-file=multi-account-config.json \
+  --account-rotation-strategy=least_used \
+  --disable-flash-fallback
+```
+
+**Multi-Account Features:**
+- 🔄 Automatic account rotation (round_robin, least_used, random)
+- 📊 Real-time quota tracking and usage statistics
+- ⚡ Smart Flash model fallback when Pro accounts are exhausted
+- 🛡️ Fault tolerance and automatic account recovery
+- 📈 Detailed usage monitoring and logging
+
+For detailed multi-account setup instructions, see:
+- [Multi-Account Usage Guide](./MULTI_ACCOUNT_USAGE.md)
+- [Multi-Account Configuration](./bridge-server/MULTI_ACCOUNT_README.md)
+- [Configuration Examples](./bridge-server/multi-account-config.example.json)
 
 After the server starts successfully, you will see output similar to:
 

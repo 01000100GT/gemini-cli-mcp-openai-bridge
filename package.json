@@ -16,6 +16,8 @@
         "prepare": "npm run install && npm run port",
         "build": "npm run prepare && npm run build --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge",
         "start": "npm start --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge --",
+        "start:multi": "npm run start:multi --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge --",
+        "start:multi-account": "npm run start:multi-account --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge --",
         "publish:bridge-server": "cd gemini-cli/packages/bridge-server && npm publish --access public"
     },
     "bin": {
