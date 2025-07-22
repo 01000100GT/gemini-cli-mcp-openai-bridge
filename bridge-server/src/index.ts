@@ -26,8 +26,8 @@ import { logger } from './utils/logger.js';
 import { type SecurityPolicy } from './types.js';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import path from 'path';
-import readline from 'readline';
+import * as path from 'path';
+import * as readline from 'readline';
 
 function mergeMcpServers(
   settings: Settings,
@@ -194,6 +194,12 @@ async function startMcpServer() {
     toolsModel,
     targetDir,
   );
+
+  // 配置 Flash 模型自动回退处理器，用于处理配额限制时的模型切换
+  config.setFlashFallbackHandler(async (currentModel: string, fallbackModel: string): Promise<boolean> => {
+    logger.warn(`⚡ 检测到配额限制，自动从 ${currentModel} 切换到 ${fallbackModel}`);
+    return true; // 自动接受回退
+  });
 
   // REFACTORED: Authentication logic with improved verbosity and error handling.
   let selectedAuthType = settings.merged.selectedAuthType;
