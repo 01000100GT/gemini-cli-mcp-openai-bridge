@@ -1,0 +1,29 @@
+{
+  "accounts": [
+    {
+      "id": "songsj",
+      "name": "主账号",
+      "authType": "gemini-api-key",
+      "apiKey": "     ",
+      "status": "active",
+      "proUsageCount": 0,
+      "proQuotaLimit": 50
+    },
+    {
+      "id": "mycola",
+      "name": "备用账号",
+      "authType": "gemini-api-key",
+      "apiKey": "        ",
+      "status": "active",
+      "proUsageCount": 0,
+      "proQuotaLimit": 50
+    }
+  ],
+  "enableFlashFallback": true,
+  "flashFallbackModel": "gemini-2.5-flash",
+  "proModels": [
+    "gemini-2.5-pro",
+    "gemini-1.5-pro"
+  ],
+  "rotationStrategy": "round_robin"
+}

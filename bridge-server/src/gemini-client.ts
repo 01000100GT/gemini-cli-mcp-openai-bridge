@@ -70,6 +70,38 @@ export class GeminiApiClient {
   }
 
   /**
+   * 获取当前账号的调试信息
+   */
+  private getCurrentAccountDebugInfo(): {
+    accountId: string;
+    accountName: string;
+    authType: string;
+    apiKeyPrefix: string;
+  } {
+    // 检查是否是增强配置（支持多账号）
+    if ('getCurrentAccountInfo' in this.config && typeof this.config.getCurrentAccountInfo === 'function') {
+      const accountInfo = (this.config as any).getCurrentAccountInfo();
+      if (accountInfo) {
+        return {
+          accountId: accountInfo.id,
+          accountName: accountInfo.name,
+          authType: accountInfo.authType,
+          apiKeyPrefix: accountInfo.apiKey ? `${accountInfo.apiKey.substring(0, 8)}...` : 'N/A'
+        };
+      }
+    }
+    
+    // 单账号模式，从环境变量获取信息
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    return {
+      accountId: 'single-account',
+      accountName: '单账号模式',
+      authType: 'gemini-api-key',
+      apiKeyPrefix: apiKey ? `${apiKey.substring(0, 8)}...` : 'N/A'
+    };
+  }
+
+  /**
    * Converts OpenAI tool definitions to Gemini tool definitions.
    */
   private convertOpenAIToolsToGemini(
@@ -258,11 +290,21 @@ export class GeminiApiClient {
     const history = messages.map(msg => this.openAIMessageToGemini(msg));
     const lastMessage = history.pop();
 
-    logger.info('Calling Gemini API', { model });
+    // 获取当前账号信息用于调试输出
+    const currentAccountInfo = this.getCurrentAccountDebugInfo();
+    
+    logger.info('Calling Gemini API', { 
+      model,
+      accountId: currentAccountInfo.accountId,
+      accountName: currentAccountInfo.accountName,
+      authType: currentAccountInfo.authType,
+      apiKeyPrefix: currentAccountInfo.apiKeyPrefix
+    });
 
     logger.debug(this.debugMode, 'Sending request to Gemini', {
       historyLength: history.length,
       lastMessage,
+      accountInfo: currentAccountInfo
     });
 
     if (!lastMessage) {
@@ -300,15 +342,36 @@ export class GeminiApiClient {
       };
     }
 
-    const geminiStream = await oneShotChat.sendMessageStream({
-      message: lastMessage.parts || [],
-      config: {
+    let geminiStream;
+    try {
+      // 使用类型断言解决不同版本@google/genai包之间的类型兼容性问题
+      const requestConfig = {
         tools: geminiTools,
         ...generationConfig,
-      },
-    });
-
-    logger.debug(this.debugMode, 'Got stream from Gemini.');
+      } as any;
+      
+      geminiStream = await oneShotChat.sendMessageStream({
+        message: lastMessage.parts || [],
+        config: requestConfig,
+      });
+      
+      logger.debug(this.debugMode, 'Got stream from Gemini.');
+    } catch (error: any) {
+      // 在API调用失败时输出详细的调试信息
+      logger.error('Gemini API调用失败', {
+        model,
+        accountId: currentAccountInfo.accountId,
+        accountName: currentAccountInfo.accountName,
+        authType: currentAccountInfo.authType,
+        apiKeyPrefix: currentAccountInfo.apiKeyPrefix,
+        errorCode: error.status || error.code,
+        errorMessage: error.message,
+        errorDetails: error.details || error.error
+      });
+      
+      // 重新抛出错误，保持原有的错误处理流程
+      throw error;
+    }
 
     // Transform the event stream to a simpler StreamChunk stream
     return (async function* (): AsyncGenerator<StreamChunk> {

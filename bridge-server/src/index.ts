@@ -23,7 +23,7 @@ import { EnhancedConfig, createEnhancedConfig } from './config/enhancedConfig.js
 import { loadMultiAccountConfigFromEnv } from './config/multiAccountManager.js';
 import { GcliMcpBridge } from './bridge/bridge.js';
 import { createOpenAIRouter } from './bridge/openai.js';
-import express = require('express');
+import express from 'express';
 import { logger } from './utils/logger.js';
 import { type SecurityPolicy } from './types.js';
 import yargs from 'yargs';
