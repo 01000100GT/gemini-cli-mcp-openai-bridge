@@ -1,0 +1,4 @@
+[submodule "gemini-cli"]
+	path = gemini-cli
+	url = https://github.com/01000100GT/gemini-cli.git
+	branch = bridge-server-integration
