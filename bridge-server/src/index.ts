@@ -312,6 +312,10 @@ async function startMcpServer() {
     process.exit(1);
   }
 
+  // 在认证前初始化配置 - 确保 toolRegistry 被正确初始化
+  logger.info('🔧 正在初始化配置...');
+  await config.initialize();
+  
   // NEW: Pre-authentication logging.
   logger.info(
     `Attempting authentication using "${selectedAuthType}" method${authReason}...`,
