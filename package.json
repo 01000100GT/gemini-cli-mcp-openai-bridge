@@ -15,6 +15,7 @@
         "port": "rimraf gemini-cli/packages/bridge-server && shx cp -r bridge-server gemini-cli/packages/ && shx cp LICENSE gemini-cli/packages/bridge-server/ && shx cp README.md gemini-cli/packages/bridge-server/ && cd gemini-cli/packages/bridge-server && npm install",
         "prepare": "npm run install && npm run port",
         "build": "npm run prepare && npm run build --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge",
+        "build_src": "npm run prepare && npm run build --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge",
         "start": "npm start --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge --",
         "start:multi": "npm run start:multi --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge --",
         "start:multi-account": "npm run start:multi-account --workspace=@intelligentinternet/gemini-cli-mcp-openai-bridge --",

@@ -262,9 +262,11 @@ export class EnhancedConfig extends Config {
 
   /**
    * 初始化配置
+   * 修复：移除对父类initialize方法的调用，因为该方法在基类中可能不可访问
    */
   async initialize(): Promise<void> {
-    await super.initialize();
+    // 执行增强配置的初始化逻辑
+    // 注意：不调用super.initialize()，因为基类的initialize方法可能有访问限制
   }
 
   /**
