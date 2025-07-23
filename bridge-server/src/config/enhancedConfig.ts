@@ -29,6 +29,26 @@ export class EnhancedConfig extends Config {
     this.multiAccountManager = new MultiAccountManager(finalConfig);
     logger.info(`多账号管理器已初始化，共 ${finalConfig.accounts.length} 个账号`);
     
+    // 显示账号详细信息
+    logger.info('📋 账号列表:');
+    finalConfig.accounts.forEach((account, index) => {
+      const statusIcon = account.status === 'active' ? '✅' : 
+                        account.status === 'quota_exceeded' ? '⚠️' : '❌';
+      logger.info(`  ${index + 1}. ${statusIcon} ${account.name} (${account.id}) - ${account.authType}`);
+      logger.info(`     配额: ${account.proUsageCount}/${account.proQuotaLimit}`);
+    });
+    
+    // 显示当前账号信息
+    const currentAccount = this.multiAccountManager.getCurrentAccount();
+    logger.info(`🎯 当前活跃账号: ${currentAccount.name} (${currentAccount.id})`);
+    
+    // 显示配置信息
+    logger.info(`⚙️ 轮换策略: ${finalConfig.rotationStrategy}`);
+    logger.info(`⚡ Flash回退: ${finalConfig.enableFlashFallback ? '启用' : '禁用'}`);
+    if (finalConfig.enableFlashFallback) {
+      logger.info(`📱 Flash回退模型: ${finalConfig.flashFallbackModel}`);
+    }
+    
     // 设置增强的Flash回退处理器
     this.setupEnhancedFlashFallback();
   }
