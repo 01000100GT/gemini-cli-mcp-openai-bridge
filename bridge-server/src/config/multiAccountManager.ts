@@ -324,6 +324,69 @@ export function createDefaultMultiAccountConfig(): MultiAccountConfig {
 }
 
 /**
+ * 替换字符串中的环境变量引用
+ * 支持 ${VAR_NAME} 格式的环境变量引用
+ */
+function replaceEnvVariables(str: string): string {
+  return str.replace(/\$\{([^}]+)\}/g, (match, varName) => {
+    const envValue = process.env[varName];
+    if (envValue === undefined) {
+      logger.warn(`环境变量 ${varName} 未定义，保持原值: ${match}`);
+      return match;
+    }
+    return envValue;
+  });
+}
+
+/**
+ * 递归替换对象中的环境变量引用
+ */
+function replaceEnvVariablesInObject(obj: any): any {
+  if (typeof obj === 'string') {
+    return replaceEnvVariables(obj);
+  } else if (Array.isArray(obj)) {
+    return obj.map(item => replaceEnvVariablesInObject(item));
+  } else if (obj !== null && typeof obj === 'object') {
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = replaceEnvVariablesInObject(value);
+    }
+    return result;
+  }
+  return obj;
+}
+
+/**
+ * 从配置文件加载多账号配置，支持环境变量替换
+ */
+export async function loadMultiAccountConfigFromFile(configPath: string): Promise<MultiAccountConfig> {
+  try {
+    const { readFileSync, existsSync } = await import('fs');
+    const { resolve } = await import('path');
+    
+    const fullPath = resolve(configPath);
+    if (!existsSync(fullPath)) {
+      logger.error(`配置文件不存在: ${fullPath}`);
+      return createDefaultMultiAccountConfig();
+    }
+    
+    const configContent = readFileSync(fullPath, 'utf-8');
+    const rawConfig = JSON.parse(configContent);
+    
+    // 替换环境变量引用
+    const processedConfig = replaceEnvVariablesInObject(rawConfig);
+    
+    logger.info(`✅ 从配置文件加载多账号配置成功: ${fullPath}`);
+    logger.info(`配置内容: ${JSON.stringify(processedConfig, null, 2)}`);
+    
+    return processedConfig;
+  } catch (error) {
+    logger.error(`加载配置文件失败: ${error instanceof Error ? error.message : String(error)}`);
+    return createDefaultMultiAccountConfig();
+  }
+}
+
+/**
  * 从环境变量加载多账号配置
  */
 export function loadMultiAccountConfigFromEnv(): MultiAccountConfig {

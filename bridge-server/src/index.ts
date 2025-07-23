@@ -20,7 +20,7 @@ import { loadExtensions, type Extension } from './config/extension.js';
 import { getCliVersion } from './utils/version.js';
 import { loadServerConfig } from './config/config.js';
 import { EnhancedConfig, createEnhancedConfig } from './config/enhancedConfig.js';
-import { loadMultiAccountConfigFromEnv } from './config/multiAccountManager.js';
+import { loadMultiAccountConfigFromEnv, loadMultiAccountConfigFromFile } from './config/multiAccountManager.js';
 import { GcliMcpBridge } from './bridge/bridge.js';
 import { createOpenAIRouter } from './bridge/openai.js';
 import express from 'express';
@@ -238,16 +238,24 @@ async function startMcpServer() {
         const configPath = path.resolve(configFile);
         
         if (fs.existsSync(configPath)) {
-          const configContent = fs.readFileSync(configPath, 'utf-8');
-          multiAccountConfig = JSON.parse(configContent);
+          multiAccountConfig = await loadMultiAccountConfigFromFile(configPath);
           logger.info('✅ 配置文件加载成功');
         } else {
           logger.warn(`⚠️ 配置文件不存在: ${configPath}，回退到环境变量配置`);
           multiAccountConfig = loadMultiAccountConfigFromEnv();
         }
       } else {
-        // 从环境变量加载
-        multiAccountConfig = loadMultiAccountConfigFromEnv();
+        // 尝试从默认配置文件加载，如果不存在则从环境变量加载
+        const defaultConfigPath = 'multi-account-config.json';
+        const fs = await import('fs');
+        
+        if (fs.existsSync(defaultConfigPath)) {
+          logger.info(`📄 从默认配置文件加载多账号配置: ${defaultConfigPath}`);
+          multiAccountConfig = await loadMultiAccountConfigFromFile(defaultConfigPath);
+        } else {
+          logger.info('📄 使用环境变量配置');
+          multiAccountConfig = loadMultiAccountConfigFromEnv();
+        }
       }
     } catch (error) {
       logger.error(`❌ 配置文件解析失败: ${error instanceof Error ? error.message : String(error)}`);

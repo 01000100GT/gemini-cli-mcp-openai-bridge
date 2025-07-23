@@ -4,7 +4,7 @@
       "id": "songsj",
       "name": "主账号",
       "authType": "gemini-api-key",
-      "apiKey": "     ",
+      "apiKey": "${GEMINI_API_KEY_SONGSJ}",
       "status": "active",
       "proUsageCount": 0,
       "proQuotaLimit": 50
@@ -13,7 +13,7 @@
       "id": "mycola",
       "name": "备用账号",
       "authType": "gemini-api-key",
-      "apiKey": "        ",
+      "apiKey": "${GEMINI_API_KEY_MYCOLA}",
       "status": "active",
       "proUsageCount": 0,
       "proQuotaLimit": 50
