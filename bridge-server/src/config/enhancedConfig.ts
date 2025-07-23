@@ -262,11 +262,14 @@ export class EnhancedConfig extends Config {
 
   /**
    * 初始化配置
-   * 修复：移除对父类initialize方法的调用，因为该方法在基类中可能不可访问
+   * 修复：调用父类的initialize方法以确保toolRegistry被正确初始化
    */
   async initialize(): Promise<void> {
+    // 调用父类的initialize方法，确保toolRegistry等核心组件被正确初始化
+    await super.initialize();
+    
     // 执行增强配置的初始化逻辑
-    // 注意：不调用super.initialize()，因为基类的initialize方法可能有访问限制
+    // 这里可以添加多账号相关的初始化代码
   }
 
   /**
