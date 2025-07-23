@@ -290,6 +290,15 @@ export class GeminiApiClient {
     const history = messages.map(msg => this.openAIMessageToGemini(msg));
     const lastMessage = history.pop();
 
+    // 如果启用了多账号管理，在每次请求前轮换账号
+    if ('rotateToNextAccount' in this.config && typeof this.config.rotateToNextAccount === 'function') {
+      try {
+        await (this.config as any).rotateToNextAccount();
+      } catch (error) {
+        logger.warn('账号轮换失败，使用当前账号:', error);
+      }
+    }
+
     // 获取当前账号信息用于调试输出
     const currentAccountInfo = this.getCurrentAccountDebugInfo();
     
@@ -310,14 +319,6 @@ export class GeminiApiClient {
     if (!lastMessage) {
       throw new Error('No message to send.');
     }
-
-    // Create a new, isolated chat session for each request.
-    const oneShotChat = new GeminiChat(
-      this.config,
-      this.contentGenerator,
-      {},
-      history,
-    );
 
     const geminiTools = this.convertOpenAIToolsToGemini(tools);
 
@@ -342,18 +343,32 @@ export class GeminiApiClient {
       };
     }
 
+    // Create a new, isolated chat session for each request.
+    const oneShotChat = new GeminiChat(
+      this.config,
+      this.contentGenerator,
+      {
+        tools: geminiTools,
+        systemInstruction: clientSystemInstruction,
+        ...generationConfig,
+      },
+      history,
+    );
+
     let geminiStream;
     try {
-      // 使用类型断言解决不同版本@google/genai包之间的类型兼容性问题
-      const requestConfig = {
-        tools: geminiTools,
-        ...generationConfig,
-      } as any;
+      // 生成一个唯一的 prompt_id 用于日志追踪
+      const prompt_id = Math.random().toString(16).slice(2);
       
-      geminiStream = await oneShotChat.sendMessageStream({
+      // Prepare SendMessageParameters with proper structure
+      const sendParams = {
         message: lastMessage.parts || [],
-        config: requestConfig,
-      });
+        config: geminiTools && geminiTools.length > 0 ? { tools: geminiTools } : undefined,
+      };
+      
+      // 修复：本地源代码中的 sendMessageStream 方法需要两个参数：params 和 prompt_id
+      // 这与已发布的 npm 包版本不同，本地开发需要匹配源代码接口
+      geminiStream = await oneShotChat.sendMessageStream(sendParams, prompt_id);
       
       logger.debug(this.debugMode, 'Got stream from Gemini.');
     } catch (error: any) {

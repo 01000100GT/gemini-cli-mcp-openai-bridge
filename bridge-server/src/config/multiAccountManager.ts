@@ -174,7 +174,20 @@ export class MultiAccountManager {
   }
 
   /**
-   * 切换到下一个可用账号
+   * 根据轮换策略切换到下一个账号（每次请求前调用）
+   */
+  rotateToNextAccount(): AccountConfig {
+    // 根据轮换策略选择下一个账号
+    this.currentAccountIndex = this.getNextAccountIndex();
+    const account = this.config.accounts[this.currentAccountIndex];
+    this.config.currentAccountId = account.id;
+    
+    logger.info(`🔄 轮换到账号: ${account.name} (${account.id})`);
+    return account;
+  }
+
+  /**
+   * 切换到下一个可用账号（配额用完时调用）
    */
   switchToNextAccount(): AccountConfig | null {
     const startIndex = this.currentAccountIndex;

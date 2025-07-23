@@ -77,7 +77,8 @@ export class EnhancedConfig extends Config {
     if (!this.multiAccountManager) {
       // 如果没有多账号管理器，使用原始处理器
       if (this.originalFlashFallbackHandler) {
-        return this.originalFlashFallbackHandler(currentModel, fallbackModel);
+        const result = await this.originalFlashFallbackHandler(currentModel, fallbackModel);
+        return Boolean(result);
       }
       return true;
     }
@@ -104,12 +105,13 @@ export class EnhancedConfig extends Config {
     }
     
     // 所有Pro账号都用完了，检查是否启用Flash回退
-    if (config.enableFlashFallback) {
+    if (Boolean(config.enableFlashFallback)) {
       logger.warn(`⚡ 所有账号的 ${currentModel} 配额已用完，自动切换到 ${fallbackModel}`);
       
       // 调用原始的Flash回退处理器（如果存在）
       if (this.originalFlashFallbackHandler) {
-        return this.originalFlashFallbackHandler(currentModel, fallbackModel);
+        const result = await this.originalFlashFallbackHandler(currentModel, fallbackModel);
+        return Boolean(result);
       }
       
       return true; // 接受Flash回退
@@ -161,6 +163,24 @@ export class EnhancedConfig extends Config {
     totalProQuota: number;
   } | null {
     return this.multiAccountManager?.getAccountStats() || null;
+  }
+
+  /**
+   * 根据轮换策略切换到下一个账号（每次请求前调用）
+   */
+  async rotateToNextAccount(): Promise<AccountConfig | null> {
+    if (!this.multiAccountManager) {
+      return null;
+    }
+
+    const nextAccount = this.multiAccountManager.rotateToNextAccount();
+    try {
+      await this.switchToAccount(nextAccount);
+      return nextAccount;
+    } catch (error) {
+      logger.error(`轮换到账号 ${nextAccount.name} 失败:`, error);
+      return null;
+    }
   }
 
   /**

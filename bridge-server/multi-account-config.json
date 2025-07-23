@@ -7,7 +7,7 @@
       "apiKey": "${GEMINI_API_KEY_SONGSJ}",
       "status": "active",
       "proUsageCount": 0,
-      "proQuotaLimit": 50
+      "proQuotaLimit": 100
     },
     {
       "id": "mycola",
@@ -16,7 +16,7 @@
       "apiKey": "${GEMINI_API_KEY_MYCOLA}",
       "status": "active",
       "proUsageCount": 0,
-      "proQuotaLimit": 50
+      "proQuotaLimit": 100
     }
   ],
   "enableFlashFallback": true,

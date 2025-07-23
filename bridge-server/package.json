@@ -25,7 +25,8 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@google/gemini-cli-core": "0.1.9",
+    "@google/gemini-cli-core": "0.1.13",
+    "@google/genai": "1.9.0",
     "@modelcontextprotocol/sdk": "^1.13.2",
     "command-exists": "^1.2.9",
     "dotenv": "^16.6.1",
