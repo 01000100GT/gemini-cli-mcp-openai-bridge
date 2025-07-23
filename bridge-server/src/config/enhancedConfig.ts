@@ -261,6 +261,13 @@ export class EnhancedConfig extends Config {
   }
 
   /**
+   * 初始化配置
+   */
+  async initialize(): Promise<void> {
+    await super.initialize();
+  }
+
+  /**
    * 重写setFlashFallbackHandler方法
    */
   setFlashFallbackHandler(handler: FlashFallbackHandler): void {
