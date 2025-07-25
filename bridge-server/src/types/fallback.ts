@@ -19,7 +19,7 @@ export interface FallbackConfig {
   /** 回退前的最大重试次数 */
   maxRetries: number;
   /** 重试延迟（毫秒） */
-  retryDelay: number;
+  retryDelay: number;  
   /** 回退模式的冷却时间（分钟） */
   cooldownMinutes: number;
   /** 是否启用自动重置 */

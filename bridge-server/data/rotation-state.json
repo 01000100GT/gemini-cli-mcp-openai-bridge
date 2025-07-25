@@ -1,6 +1,6 @@
 {
   "currentIndex": 0,
-  "lastUsedTime": "2025-07-25T02:34:56.245Z",
+  "lastUsedTime": "2025-07-25T04:20:04.360Z",
   "totalRequests": 2,
   "keys": [
     {
@@ -14,7 +14,7 @@
       "lastSuccess": "2025-07-25T02:34:56.245Z"
     },
     {
-      "key": "AIza ",
+      "key": "AIza",
       "status": "active",
       "requestCount": 0,
       "successCount": 0,

@@ -21,6 +21,7 @@
   "dependencies": {
     "@google/gemini-cli-core": "0.1.13",
     "@modelcontextprotocol/sdk": "^1.13.2",
+    "better-sqlite3": "^12.2.0",
     "command-exists": "^1.2.9",
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
@@ -31,6 +32,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/command-exists": "^1.2.3",
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",

@@ -1,0 +1,515 @@
+2025-07-25T03:30:15.132Z [BRIDGE-SERVER] [ERROR] Failed to create directory for fallback persistence {
+  message: 'require is not defined',
+  stack: 'ReferenceError: require is not defined\n' +
+    '    at FallbackPersistence.ensureDirectoryExists (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:35:17)\n' +
+    '    at new FallbackPersistence (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:24:14)\n' +
+    '    at new FallbackService (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:27:28)\n' +
+    '    at FallbackManager.initializeFallbackService (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:45:36)\n' +
+    '    at new FallbackManager (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:33:18)\n' +
+    '    at GeminiApiClient.initializeFallbackManager (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:98:36)\n' +
+    '    at GeminiApiClient.initializeServices (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:65:20)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async GeminiApiClient.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:265:13)\n' +
+    '    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34'
+}
+[fallback/FallbackService] 回退服务初始化完成
+[fallback/FallbackService] 主模型: gemini-2.5-pro
+[fallback/FallbackService] 回退模型: gemini-2.5-flash
+[fallback/FallbackService] 启用状态: true
+[fallback/FallbackPersistence] 开始加载回退状态
+[fallback/FallbackPersistence] 持久化文件不存在，返回null
+[fallback/FallbackManager] 回退服务初始化成功
+2025-07-25T03:30:15.133Z [BRIDGE-SERVER] [INFO] Fallback service initialized successfully
+[GeminiApiClient] [回退时序2] 回退管理器初始化成功
+2025-07-25T03:30:15.133Z [BRIDGE-SERVER] [INFO] Fallback manager initialized successfully
+[GeminiApiClient] [回退时序3] 回退管理器初始化流程结束
+[fallback/FallbackService] 未找到持久化状态，使用默认状态
+[GeminiApiClient] [请求时序3] 初始化等待完成
+[GeminiApiClient] [请求时序4] 开始获取轮换API Key
+[rotation/RotationService] [API请求] 请求获取API Key，当前状态: enabled=true, manager=true, initializing=false
+[rotation/RotationService] [API请求] 从轮换管理器获取下一个API Key
+[rotation/ApiKeyRotationManager] 请求获取下一个API Key，当前索引: 0
+[rotation/ApiKeyRotationManager] 开始轮换查找，最大尝试次数: 2
+[rotation/ApiKeyRotationManager] 尝试第1次，检查索引0的Key状态: active
+[rotation/ApiKeyRotationManager] Key 1/2 可用，开始使用
+[DEBUG] /rotation/ApiKeyRotationManager.ts - saveState: 开始保存轮换状态
+[DEBUG] /rotation/ApiKeyRotationManager.ts - saveState: 准备保存的数据 {
+  currentIndex: 0,
+  totalRequests: 3,
+  keysCount: 2,
+  persistenceFile: './data/rotation-state.json'
+}
+[DEBUG] /rotation/PersistenceService.ts - saveData: 开始保存持久化数据 {
+  filePath: 'F:\\source\\ai\\github\\01000100GT\\gemini-cli-mcp-openai-bridge\\gemini-cli\\packages\\bridge-server\\data\\rotation-state.json',
+  currentIndex: 0,
+  totalRequests: 3,
+  keysCount: 2
+}
+[DEBUG] /rotation/PersistenceService.ts - saveData: 获取文件锁成功
+[DEBUG] /rotation/PersistenceService.ts - saveData: 持久化数据写入文件成功
+[DEBUG] /rotation/PersistenceService.ts - saveData: 释放文件锁
+[DEBUG] /rotation/ApiKeyRotationManager.ts - saveState: 轮换状态保存成功
+[rotation/ApiKeyRotationManager] 成功获取API Key: AIzaSyDQsM...
+[rotation/RotationService] [API请求] 成功获取轮换API Key: AIzaSyDQsM...
+[GeminiApiClient] [请求时序5] 成功获取轮换API Key
+[GeminiApiClient] [请求时序6] 开始执行实际请求
+[GeminiApiClient] [回退时序4] 当前使用模型: gemini-2.5-pro
+2025-07-25T03:30:15.140Z [BRIDGE-SERVER] [INFO] Calling Gemini API { model: 'gemini-2.5-pro' }
+[GeminiApiClient] [请求时序7] 使用轮换API Key创建ContentGenerator
+[GeminiApiClient] [DEBUG] 动态配置详情: {
+  model: 'gemini-2.5-pro',
+  hasApiKey: true,
+  apiKeyPrefix: 'AIzaSyDQsM...',
+  authType: 'gemini-api-key'
+}
+Attempt 1 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n          
+  \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            
+\"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"42s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+Attempt 2 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"36s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"36s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n .googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"l.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"l.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            apis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n              \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"36s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+Attempt 3 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n          
+  \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            
+\"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+Attempt 4 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"3s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检查是否应该触发回退: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 判断错误类型: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测Pro模型配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测通用配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测Pro模型配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测到配额超限错误
+2025-07-25T03:31:35.417Z [BRIDGE-SERVER] [WARN] Detected quota exceeded error {
+  error: '{"error":{"message":"{\\n  \\"error\\": {\\n    \\"code\\": 429,\\n    \\"message\\": \\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\\",\\n    \\"status\\": \\"RESOURCE_EXHAUSTED\\",\\n    \\"details\\": [\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.QuotaFailure\\",\\n        \\"violations\\": [\\n          {\\n            \\"quotaMetric\\": \\"generativelanguage.googleapis.com/generate_content_free_tier_requests\\",\\n            \\"quotaId\\": \\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\\",\\n            \\"quotaDimensions\\": {\\n              \\"location\\": \\"global\\",\\n              \\"model\\": \\"gemini-2.5-pro\\"\\n            },\\n            \\"quotaValue\\": \\"100\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.Help\\",\\n        \\"links\\": [\\n          {\\n            \\"description\\": \\"Learn more about Gemini API quotas\\",\\n            \\"url\\": \\"https://ai.google.dev/gemini-api/docs/rate-limits\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.RetryInfo\\",\\n        \\"retryDelay\\": \\"24s\\"\\n      }\\n    ]\\n  }\\n}\\n","code":429,"status":"Too Many Requests"}}'
+}
+[fallback/errorDetection] 错误类型 generic_quota_exceeded 应该触发回退
+2025-07-25T03:31:35.417Z [BRIDGE-SERVER] [INFO] Error should trigger fallback {
+  errorType: 'generic_quota_exceeded',
+  error: '{"error":{"message":"{\\n  \\"error\\": {\\n    \\"code\\": 429,\\n    \\"message\\": \\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\\",\\n    \\"status\\": \\"RESOURCE_EXHAUSTED\\",\\n    \\"details\\": [\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.QuotaFailure\\",\\n        \\"violations\\": [\\n          {\\n            \\"quotaMetric\\": \\"generativelanguage.googleapis.com/generate_content_free_tier_requests\\",\\n            \\"quotaId\\": \\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\\",\\n            \\"quotaDimensions\\": {\\n              \\"location\\": \\"global\\",\\n              \\"model\\": \\"gemini-2.5-pro\\"\\n            },\\n            \\"quotaValue\\": \\"100\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.Help\\",\\n        \\"links\\": [\\n          {\\n            \\"description\\": \\"Learn more about Gemini API quotas\\",\\n            \\"url\\": \\"https://ai.google.dev/gemini-api/docs/rate-limits\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.RetryInfo\\",\\n        \\"retryDelay\\": \\"24s\\"\\n      }\\n    ]\\n  }\\n}\\n","code":429,"status":"Too Many Requests"}}'
+}
+[fallback/FallbackService] 回退触发检查结果: true
+[fallback/errorDetection] 判断错误类型: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测Pro模型配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测通用配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测Pro模型配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测到配额超限错误
+2025-07-25T03:31:35.419Z [BRIDGE-SERVER] [WARN] Detected quota exceeded error {
+  error: '{"error":{"message":"{\\n  \\"error\\": {\\n    \\"code\\": 429,\\n    \\"message\\": \\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\\",\\n    \\"status\\": \\"RESOURCE_EXHAUSTED\\",\\n    \\"details\\": [\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.QuotaFailure\\",\\n        \\"violations\\": [\\n          {\\n            \\"quotaMetric\\": \\"generativelanguage.googleapis.com/generate_content_free_tier_requests\\",\\n            \\"quotaId\\": \\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\\",\\n            \\"quotaDimensions\\": {\\n              \\"location\\": \\"global\\",\\n              \\"model\\": \\"gemini-2.5-pro\\"\\n            },\\n            \\"quotaValue\\": \\"100\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.Help\\",\\n        \\"links\\": [\\n          {\\n            \\"description\\": \\"Learn more about Gemini API quotas\\",\\n            \\"url\\": \\"https://ai.google.dev/gemini-api/docs/rate-limits\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.RetryInfo\\",\\n        \\"retryDelay\\": \\"24s\\"\\n      }\\n    ]\\n  }\\n}\\n","code":429,"status":"Too Many Requests"}}'
+}
+[fallback/FallbackService] 错误类型: generic_quota_exceeded
+[GeminiApiClient] [回退时序5] 是否需要回退: true
+[fallback/FallbackManager] 触发回退到备用模型
+[fallback/FallbackService] 开始执行模型回退
+[fallback/FallbackService] 触发错误: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+[fallback/errorDetection] 判断错误类型: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测Pro模型配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测通用配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测Pro模型配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测配额超限错误: ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n            \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            \"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"24s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+[fallback/errorDetection] 检测到配额超限错误
+2025-07-25T03:31:35.423Z [BRIDGE-SERVER] [WARN] Detected quota exceeded error {
+  error: '{"error":{"message":"{\\n  \\"error\\": {\\n    \\"code\\": 429,\\n    \\"message\\": \\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\\",\\n    \\"status\\": \\"RESOURCE_EXHAUSTED\\",\\n    \\"details\\": [\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.QuotaFailure\\",\\n        \\"violations\\": [\\n          {\\n            \\"quotaMetric\\": \\"generativelanguage.googleapis.com/generate_content_free_tier_requests\\",\\n            \\"quotaId\\": \\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\\",\\n            \\"quotaDimensions\\": {\\n              \\"location\\": \\"global\\",\\n              \\"model\\": \\"gemini-2.5-pro\\"\\n            },\\n            \\"quotaValue\\": \\"100\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.Help\\",\\n        \\"links\\": [\\n          {\\n            \\"description\\": \\"Learn more about Gemini API quotas\\",\\n            \\"url\\": \\"https://ai.google.dev/gemini-api/docs/rate-limits\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.RetryInfo\\",\\n        \\"retryDelay\\": \\"24s\\"\\n      }\\n    ]\\n  }\\n}\\n","code":429,"status":"Too Many Requests"}}'
+}
+[fallback/FallbackPersistence] 开始保存回退状态: {
+  isInFallbackMode: true,
+  currentModel: 'gemini-2.5-flash',
+  fallbackModel: 'gemini-2.5-flash',
+  lastSwitchTime: '2025-07-25T03:31:35.421Z',
+  switchCount: 1,
+  consecutiveFailures: 0,
+  lastError: {
+    message: '{"error":{"message":"{\\n  \\"error\\": {\\n    \\"code\\": 429,\\n    \\"message\\": \\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\\",\\n    \\"status\\": \\"RESOURCE_EXHAUSTED\\",\\n    \\"details\\": [\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.QuotaFailure\\",\\n        \\"violations\\": [\\n          {\\n            \\"quotaMetric\\": \\"generativelanguage.googleapis.com/generate_content_free_tier_requests\\",\\n            \\"quotaId\\": \\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\\",\\n            \\"quotaDimensions\\": {\\n              \\"location\\": \\"global\\",\\n              \\"model\\": \\"gemini-2.5-pro\\"\\n            },\\n            \\"quotaValue\\": \\"100\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.Help\\",\\n        \\"links\\": [\\n          {\\n            \\"description\\": \\"Learn more about Gemini API quotas\\",\\n            \\"url\\": \\"https://ai.google.dev/gemini-api/docs/rate-limits\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.RetryInfo\\",\\n        \\"retryDelay\\": \\"24s\\"\\n      }\\n    ]\\n  }\\n}\\n","code":429,"status":"Too Many Requests"}}',
+    timestamp: '2025-07-25T03:31:35.421Z',
+    type: 'generic_quota_exceeded'
+  },
+  lastUpdated: '2025-07-25T03:30:15.132Z'
+}
+[fallback/FallbackPersistence] 获取文件锁失败: Error: ENOENT: no such file or directory, open 'F:\source\ai\github\01000100GT\gemini-cli-mcp-openai-bridge\gemini-cli\packages\bridge-server\.gemini\fallback-state.json.lock'
+    at async open (node:internal/fs/promises:633:25)
+    at async Object.writeFile (node:internal/fs/promises:1207:14)
+    at async FallbackPersistence.acquireLock (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:65:13)
+    at async FallbackPersistence.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:97:28)
+    at async FallbackService.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:101:13)
+    at async FallbackService.performFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:197:13)
+    at async FallbackService.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:148:13)
+    at async FallbackManager.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:128:28)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:429:48)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'F:\\source\\ai\\github\\01000100GT\\gemini-cli-mcp-openai-bridge\\gemini-cli\\packages\\bridge-server\\.gemini\\fallback-state.json.lock'
+}
+[fallback/FallbackPersistence] 获取文件锁失败: Error: ENOENT: no such file or directory, open 'F:\source\ai\github\01000100GT\gemini-cli-mcp-openai-bridge\gemini-cli\packages\bridge-server\.gemini\fallback-state.json.lock'
+    at async open (node:internal/fs/promises:633:25)
+    at async Object.writeFile (node:internal/fs/promises:1207:14)
+    at async FallbackPersistence.acquireLock (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:65:13)
+    at async FallbackPersistence.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:97:28)
+    at async FallbackService.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:101:13)
+    at async FallbackService.performFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:197:13)
+    at async FallbackService.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:148:13)
+    at async FallbackManager.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:128:28)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:429:48)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'F:\\source\\ai\\github\\01000100GT\\gemini-cli-mcp-openai-bridge\\gemini-cli\\packages\\bridge-server\\.gemini\\fallback-state.json.lock'
+}
+[fallback/FallbackPersistence] 获取文件锁失败: Error: ENOENT: no such file or directory, open 'F:\source\ai\github\01000100GT\gemini-cli-mcp-openai-bridge\gemini-cli\packages\bridge-server\.gemini\fallback-state.json.lock'
+    at async open (node:internal/fs/promises:633:25)
+    at async Object.writeFile (node:internal/fs/promises:1207:14)
+    at async FallbackPersistence.acquireLock (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:65:13)
+    at async FallbackPersistence.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:97:28)
+    at async FallbackService.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:101:13)
+    at async FallbackService.performFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:197:13)
+    at async FallbackService.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:148:13)
+    at async FallbackManager.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:128:28)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:429:48)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'F:\\source\\ai\\github\\01000100GT\\gemini-cli-mcp-openai-bridge\\gemini-cli\\packages\\bridge-server\\.gemini\\fallback-state.json.lock'
+}
+[fallback/FallbackPersistence] 保存状态失败: 无法获取文件锁，保存状态失败
+2025-07-25T03:31:35.749Z [BRIDGE-SERVER] [ERROR] Failed to acquire lock for saving fallback state {
+  message: '无法获取文件锁，保存状态失败',
+  stack: 'Error: 无法获取文件锁，保存状态失败\n' +
+    '    at FallbackPersistence.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:104:27)\n' +
+    '    at async FallbackService.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:101:13)\n' +
+    '    at async FallbackService.performFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:197:13)\n' +
+    '    at async FallbackService.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:148:13)\n' +
+    '    at async FallbackManager.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:128:28)\n' +
+    '    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:429:48)\n' +
+    '    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34'
+}
+[fallback/FallbackService] 状态保存失败: Error: 无法获取文件锁，保存状态失败
+    at FallbackPersistence.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:104:27)
+    at async FallbackService.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:101:13)
+    at async FallbackService.performFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:197:13)
+    at async FallbackService.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:148:13)
+    at async FallbackManager.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:128:28)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:429:48)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34
+2025-07-25T03:31:35.751Z [BRIDGE-SERVER] [ERROR] Failed to save fallback state {
+  message: '无法获取文件锁，保存状态失败',
+  stack: 'Error: 无法获取文件锁，保存状态失败\n' +
+    '    at FallbackPersistence.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackPersistence.js:104:27)\n' +
+    '    at async FallbackService.saveState (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:101:13)\n' +
+    '    at async FallbackService.performFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:197:13)\n' +
+    '    at async FallbackService.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackService.js:148:13)\n' +
+    '    at async FallbackManager.triggerFallback (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/fallback/FallbackManager.js:128:28)\n' +
+    '    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:429:48)\n' +
+    '    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34'
+}
+[fallback/FallbackManager] 模型切换事件: {
+  fromModel: 'gemini-2.5-pro',
+  toModel: 'gemini-2.5-flash',
+  timestamp: 2025-07-25T03:31:35.751Z,
+  reason: 'quota_exceeded',
+  errorType: 'generic_quota_exceeded'
+}
+[GeminiApiClient] [回退事件] 模型切换: {
+  fromModel: 'gemini-2.5-pro',
+  toModel: 'gemini-2.5-flash',
+  timestamp: 2025-07-25T03:31:35.751Z,
+  reason: 'quota_exceeded',
+  errorType: 'generic_quota_exceeded'
+}
+2025-07-25T03:31:35.752Z [BRIDGE-SERVER] [INFO] Model switched due to fallback {
+  fromModel: 'gemini-2.5-pro',
+  toModel: 'gemini-2.5-flash',
+  timestamp: 2025-07-25T03:31:35.751Z,
+  reason: 'quota_exceeded',
+  errorType: 'generic_quota_exceeded'
+}
+[fallback/FallbackManager] 启动自动重置定时器，延迟: 300000ms
+[fallback/FallbackService] 模型回退成功
+[fallback/FallbackService] 从模型: gemini-2.5-pro
+[fallback/FallbackService] 切换到模型: gemini-2.5-flash
+2025-07-25T03:31:35.753Z [BRIDGE-SERVER] [INFO] Model fallback performed successfully {
+  fromModel: 'gemini-2.5-pro',
+  toModel: 'gemini-2.5-flash',
+  reason: '{"error":{"message":"{\\n  \\"error\\": {\\n    \\"code\\": 429,\\n    \\"message\\": \\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\\",\\n    \\"status\\": \\"RESOURCE_EXHAUSTED\\",\\n    \\"details\\": [\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.QuotaFailure\\",\\n        \\"violations\\": [\\n          {\\n            \\"quotaMetric\\": \\"generativelanguage.googleapis.com/generate_content_free_tier_requests\\",\\n            \\"quotaId\\": \\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\\",\\n            \\"quotaDimensions\\": {\\n              \\"location\\": \\"global\\",\\n              \\"model\\": \\"gemini-2.5-pro\\"\\n            },\\n            \\"quotaValue\\": \\"100\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.Help\\",\\n        \\"links\\": [\\n          {\\n            \\"description\\": \\"Learn more about Gemini API quotas\\",\\n            \\"url\\": \\"https://ai.google.dev/gemini-api/docs/rate-limits\\"\\n          }\\n        ]\\n      },\\n      {\\n        \\"@type\\": \\"type.googleapis.com/google.rpc.RetryInfo\\",\\n        \\"retryDelay\\": \\"24s\\"\\n      }\\n    ]\\n  }\\n}\\n","code":429,"status":"Too Many Requests"}}',
+  switchCount: 1
+}
+[fallback/FallbackManager] 回退触发成功: {
+  success: true,
+  newModel: 'gemini-2.5-flash',
+  previousModel: 'gemini-2.5-pro'
+}
+2025-07-25T03:31:35.753Z [BRIDGE-SERVER] [INFO] Fallback triggered successfully {
+  success: true,
+  newModel: 'gemini-2.5-flash',
+  previousModel: 'gemini-2.5-pro'
+}
+[GeminiApiClient] [回退时序6] 回退触发成功: {
+  success: true,
+  newModel: 'gemini-2.5-flash',
+  previousModel: 'gemini-2.5-pro'
+}
+[GeminiApiClient] [回退时序7] 使用回退模型重试: gemini-2.5-flash
+[GeminiApiClient] [回退时序4] 当前使用模型: gemini-2.5-flash
+2025-07-25T03:31:35.754Z [BRIDGE-SERVER] [INFO] Calling Gemini API { model: 'gemini-2.5-flash' }
+[GeminiApiClient] [请求时序7] 使用轮换API Key创建ContentGenerator
+[GeminiApiClient] [DEBUG] 动态配置详情: {
+  model: 'gemini-2.5-pro',
+  hasApiKey: true,
+  apiKeyPrefix: 'AIzaSyDQsM...',
+  authType: 'gemini-api-key'
+}
+Attempt 1 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n          
+  \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            
+\"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"22s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+Attempt 2 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n          
+  \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            
+\"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"14s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+Attempt 3 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n          
+  \"quotaDimensions\": {\n              \"model\": \"gemini-2.5-pro\",\n              \"location\": \"global\"\n            },\n            
+\"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"59s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}
+Attempt 4 failed with status 429. Retrying with backoff... ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.\",\n    \"status\": \"RESOURCE_EXHAUSTED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.QuotaFailure\",\n        \"violations\": [\n          {\n            \"quotaMetric\": \"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\n            \"quotaId\": \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\n          
+  \"quotaDimensions\": {\n              \"location\": \"global\",\n              \"model\": \"gemini-2.5-pro\"\n            },\n            
+\"quotaValue\": \"100\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.Help\",\n        \"links\": [\n          {\n            \"description\": \"Learn more about Gemini API quotas\",\n            \"url\": \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n          }\n        ]\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.RetryInfo\",\n        \"retryDelay\": \"39s\"\n      }\n    ]\n  }\n}\n","code":429,"status":"Too Many Requests"}}
+    at throwErrorIfNotOK (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:13187:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:12978:13
+    at async Models.generateContentStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/node_modules/@google/genai/dist/node/index.mjs:14308:24)
+    at async retryWithBackoff (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/utils/retry.js:62:20)
+    at async GeminiChat.sendMessageStream (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/core/dist/src/core/geminiChat.js:303:36)
+    at async GeminiApiClient.executeStreamRequest (file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/gemini-client.js:386:34)
+    at async file:///F:/source/ai/github/01000100GT/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/dist/bridge/openai.js:27:34 {
+  status: 429
+}

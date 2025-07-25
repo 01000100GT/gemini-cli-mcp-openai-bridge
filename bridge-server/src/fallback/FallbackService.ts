@@ -4,7 +4,8 @@
  */
 
 import { FallbackConfig, FallbackState, ModelSwitchEvent, ErrorType, FallbackStats } from '../types/fallback.js';
-import { FallbackPersistence } from './FallbackPersistence.js';
+// 修改：使用SQLite持久化替代文件锁机制，解决并发问题
+import { SqliteFallbackPersistence } from './SqliteFallbackPersistence.js';
 import { shouldTriggerFallback, getErrorType } from './errorDetection.js';
 import { logger } from '../utils/logger.js';
 import { EventEmitter } from 'events';
@@ -16,7 +17,8 @@ import { EventEmitter } from 'events';
 export class FallbackService extends EventEmitter {
   private config: FallbackConfig;
   private state: FallbackState;
-  private persistence: FallbackPersistence;
+  // 修改：使用SQLite持久化服务替代原有的文件锁机制
+  private persistence: SqliteFallbackPersistence;
   private stats: FallbackStats;
   
   /**
@@ -27,7 +29,10 @@ export class FallbackService extends EventEmitter {
   constructor(config: FallbackConfig, persistenceFilePath: string) {
     super();
     this.config = config;
-    this.persistence = new FallbackPersistence(persistenceFilePath);
+    // 修改：创建SQLite持久化实例，将.json文件路径改为.db文件路径
+    const dbPath = persistenceFilePath.replace(/\.json$/, '.db');
+    this.persistence = new SqliteFallbackPersistence(dbPath);
+    console.log('[fallback/FallbackService] 使用SQLite持久化，数据库路径:', dbPath);
     
     // 初始化状态
     this.state = {
