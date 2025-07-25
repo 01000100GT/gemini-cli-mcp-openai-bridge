@@ -20,6 +20,7 @@ import {
   type StreamChunk,
 } from './types.js';
 import { RotationService } from './rotation/RotationService.js';
+import { FallbackManager } from './fallback/FallbackManager.js';
 import { logger } from './utils/logger.js';
 
 /**
@@ -63,6 +64,8 @@ export class GeminiApiClient {
   private readonly debugMode: boolean;
   // 添加API Key轮换服务
   private rotationService: RotationService | null = null;
+  // 添加回退管理器
+  private fallbackManager: FallbackManager | null = null;
   // 修复：添加初始化状态跟踪，解决异步竞态条件问题
   private isInitializing = false;
   private initializationPromise?: Promise<void>;
@@ -71,7 +74,17 @@ export class GeminiApiClient {
     this.config = config;
     this.debugMode = debugMode;
     // 修复：启动异步初始化但不阻塞构造函数
-    this.initializationPromise = this.initializeRotationService();
+    this.initializationPromise = this.initializeServices();
+  }
+
+  /**
+   * 初始化服务（API Key轮换和回退管理）
+   * 如果启用了多账号模式，则创建轮换服务实例
+   * 如果启用了回退功能，则创建回退管理器实例
+   */
+  private async initializeServices(): Promise<void> {
+    await this.initializeRotationService();
+    await this.initializeFallbackManager();
   }
 
   /**
@@ -96,8 +109,41 @@ export class GeminiApiClient {
       logger.warn(this.debugMode, 'API Key轮换服务初始化失败，使用默认配置', error);
       this.rotationService = null;
     } finally {
-      this.isInitializing = false;
       console.log('[GeminiApiClient] [客户端时序5] 初始化流程完成');
+    }
+  }
+
+  /**
+   * 初始化回退管理器
+   * 如果启用了回退功能，则创建回退管理器实例
+   */
+  private async initializeFallbackManager(): Promise<void> {
+    try {
+      console.log('[GeminiApiClient] [回退时序1] 开始初始化回退管理器');
+      
+      this.fallbackManager = new FallbackManager();
+      
+      // 监听回退事件
+      this.fallbackManager.on('modelSwitched', (event) => {
+        console.log('[GeminiApiClient] [回退事件] 模型切换:', event);
+        logger.info('Model switched due to fallback', event);
+      });
+      
+      this.fallbackManager.on('modelReset', (event) => {
+        console.log('[GeminiApiClient] [回退事件] 模型重置:', event);
+        logger.info('Model reset to primary', event);
+      });
+      
+      console.log('[GeminiApiClient] [回退时序2] 回退管理器初始化成功');
+      logger.info('Fallback manager initialized successfully');
+    } catch (error) {
+      console.error('[GeminiApiClient] [回退时序ERROR] 回退管理器初始化失败:', error);
+      logger.error('Failed to initialize fallback manager', error);
+      // 回退管理器初始化失败不应该阻止整个客户端工作
+      this.fallbackManager = null;
+    } finally {
+      this.isInitializing = false;
+      console.log('[GeminiApiClient] [回退时序3] 回退管理器初始化流程结束');
     }
   }
 
@@ -309,7 +355,7 @@ export class GeminiApiClient {
 
   /**
    * 执行实际的流式请求
-   * 包含错误处理和重试逻辑
+   * 包含错误处理、重试逻辑和回退功能
    */
   private async executeStreamRequest({
     model,
@@ -324,6 +370,13 @@ export class GeminiApiClient {
     tool_choice?: any;
     apiKey?: string | null;
   }): Promise<AsyncGenerator<StreamChunk>> {
+    let currentModel = model;
+    
+    // 检查是否需要使用回退模型
+    if (this.fallbackManager) {
+      currentModel = this.fallbackManager.getCurrentModel();
+      console.log(`[GeminiApiClient] [回退时序4] 当前使用模型: ${currentModel}`);
+    }
     let clientSystemInstruction: Content | undefined = undefined;
     const useInternalPrompt = !!this.config.getUserMemory(); // Check if there is a prompt from GEMINI.md
 
@@ -464,6 +517,36 @@ export class GeminiApiClient {
         }
       })();
     } catch (error) {
+      // 检查是否需要触发回退
+      let shouldFallback = false;
+      if (this.fallbackManager) {
+        shouldFallback = await this.fallbackManager.shouldTriggerFallback(error as Error);
+        console.log(`[GeminiApiClient] [回退时序5] 是否需要回退: ${shouldFallback}`);
+        
+        if (shouldFallback) {
+          try {
+            const fallbackResult = await this.fallbackManager.triggerFallback(error as Error);
+            console.log('[GeminiApiClient] [回退时序6] 回退触发成功:', fallbackResult);
+            
+            // 使用回退模型重新尝试请求
+            const newModel = this.fallbackManager.getCurrentModel();
+            console.log(`[GeminiApiClient] [回退时序7] 使用回退模型重试: ${newModel}`);
+            
+            // 递归调用，使用新模型重试
+            return this.executeStreamRequest({
+              model: newModel,
+              messages,
+              tools,
+              tool_choice,
+              apiKey
+            });
+          } catch (fallbackError) {
+            console.error('[GeminiApiClient] [回退时序ERROR] 回退失败:', fallbackError);
+            // 回退失败，继续原有错误处理流程
+          }
+        }
+      }
+      
       // 如果使用了轮换的API Key，报告失败使用
       if (this.rotationService && apiKey) {
         this.rotationService.reportUsage(apiKey, false).catch(reportError => {

@@ -42,7 +42,7 @@ GEMINI_PERSISTENCE_FILE=./data/rotation-state.json
 
 # 多账号配置 - 统一使用JSON格式，避免配置混乱
 # 包含完整的账号信息：id、name、apiKey、quota、status
-GEMINI_MULTI_ACCOUNTS='{"enabled":true,"accounts":[{"id":"ssj","name":"主账号ssj","apiKey":" ","quota":{"daily":100,"monthly":3000},"status":"active"},{"id":"mycola","name":"备用账号mycola","apiKey":" ","quota":{"daily":100,"monthly":3000},"status":"active"}]}'
+GEMINI_MULTI_ACCOUNTS='{"enabled":true,"accounts":[{"id":"ssj","name":"主账号ssj","apiKey":"AIza ","quota":{"daily":100,"monthly":3000},"status":"active"},{"id":"mycola","name":"备用账号mycola","apiKey":"AIza ","quota":{"daily":100,"monthly":3000},"status":"active"}]}'
 
 # ===========================================
 # 服务器配置
@@ -60,8 +60,9 @@ LOG_LEVEL=info
 # 默认模型
 GEMINI_MODEL=gemini-2.5-pro
 
-# 回退模型 如果 gemini-2.5-pro无法使用，请切换为gemini-2.0-flash
-BACK_GEMINI_MODEL=gemini-2.0-flash
+# 回退模型 当gemini-2.5-pro模型请求失败时，会自动切换为gemini-2.5-flash
+GEMINI_FALLBACK_MODEL=gemini-2.5-flash
+
 # ===========================================
 # 使用说明
 # ===========================================

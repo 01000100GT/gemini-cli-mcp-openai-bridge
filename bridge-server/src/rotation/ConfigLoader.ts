@@ -4,6 +4,7 @@
 
 import { logger } from '../utils/logger.js';
 import { type RotationConfig, type MultiAccountConfig } from './types.js';
+import { type FallbackConfig } from '../types/fallback.js';
 
 export class ConfigLoader {
   private debugMode: boolean;
@@ -264,5 +265,132 @@ export class ConfigLoader {
    */
   private getPersistenceFile(): string {
     return process.env.GEMINI_PERSISTENCE_FILE || '.gemini/api-keys-usage.json';
+  }
+
+  /**
+   * 加载回退模型配置
+   */
+  loadFallbackConfig(): FallbackConfig {
+    console.log('[DEBUG] /rotation/ConfigLoader.ts - loadFallbackConfig: 开始加载回退模型配置');
+    
+    const config: FallbackConfig = {
+      enabled: this.getFallbackEnabled(),
+      primaryModel: this.getPrimaryModel(),
+      fallbackModel: this.getFallbackModel(),
+      triggerConditions: this.getTriggerConditions(),
+      maxRetries: this.getMaxRetries(),
+      retryDelay: this.getRetryDelay(),
+      cooldownMinutes: this.getFallbackCooldownMinutes(),
+      autoResetEnabled: this.getAutoResetEnabled(),
+      autoResetDelay: this.getAutoResetDelay(),
+      persistenceEnabled: this.getFallbackPersistenceEnabled()
+    };
+    
+    console.log('[DEBUG] /rotation/ConfigLoader.ts - loadFallbackConfig: 回退模型配置加载完成', {
+      enabled: config.enabled,
+      primaryModel: config.primaryModel,
+      fallbackModel: config.fallbackModel,
+      maxRetries: config.maxRetries
+    });
+    
+    return config;
+  }
+
+  /**
+   * 获取回退功能是否启用
+   */
+  private getFallbackEnabled(): boolean {
+    const value = process.env.GEMINI_FALLBACK_ENABLED;
+    if (value === undefined) {
+      return true; // 默认启用
+    }
+    return value.toLowerCase() !== 'false';
+  }
+
+  /**
+   * 获取主模型
+   */
+  private getPrimaryModel(): string {
+    return process.env.GEMINI_MODEL || process.env.GEMINI_PRIMARY_MODEL || 'gemini-2.5-pro';
+  }
+
+  /**
+   * 获取回退模型
+   */
+  private getFallbackModel(): string {
+    return process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash';
+  }
+
+  /**
+   * 获取触发条件
+   */
+  private getTriggerConditions(): string[] {
+    const conditions = process.env.GEMINI_FALLBACK_TRIGGERS;
+    if (conditions) {
+      return conditions.split(',').map(c => c.trim());
+    }
+    // 默认触发条件
+    return ['quota_exceeded', 'rate_limit', 'server_error'];
+  }
+
+  /**
+   * 获取最大重试次数
+   */
+  private getMaxRetries(): number {
+    const value = process.env.GEMINI_FALLBACK_MAX_RETRIES;
+    return value ? parseInt(value, 10) : 3;
+  }
+
+  /**
+   * 获取重试延迟（毫秒）
+   */
+  private getRetryDelay(): number {
+    const value = process.env.GEMINI_FALLBACK_RETRY_DELAY;
+    return value ? parseInt(value, 10) : 1000; // 默认1秒
+  }
+
+  /**
+   * 获取回退冷却时间（分钟）
+   */
+  private getFallbackCooldownMinutes(): number {
+    const cooldown = process.env.GEMINI_FALLBACK_COOLDOWN_MINUTES;
+    return cooldown ? parseInt(cooldown, 10) : 5; // 默认5分钟
+  }
+
+  /**
+   * 获取自动重置是否启用
+   */
+  private getAutoResetEnabled(): boolean {
+    const value = process.env.GEMINI_FALLBACK_AUTO_RESET;
+    if (value === undefined) {
+      return true; // 默认启用自动重置
+    }
+    return value.toLowerCase() !== 'false';
+  }
+
+  /**
+   * 获取自动重置延迟（毫秒）
+   */
+  private getAutoResetDelay(): number {
+    const value = process.env.GEMINI_FALLBACK_AUTO_RESET_DELAY;
+    return value ? parseInt(value, 10) : 300000; // 默认5分钟
+  }
+
+  /**
+   * 获取回退持久化是否启用
+   */
+  private getFallbackPersistenceEnabled(): boolean {
+    const value = process.env.GEMINI_FALLBACK_PERSISTENCE_ENABLED;
+    if (value === undefined) {
+      return true; // 默认启用持久化
+    }
+    return value.toLowerCase() !== 'false';
+  }
+
+  /**
+   * 获取回退持久化文件路径
+   */
+  getFallbackPersistenceFile(): string {
+    return process.env.GEMINI_FALLBACK_PERSISTENCE_FILE || '.gemini/fallback-state.json';
   }
 }

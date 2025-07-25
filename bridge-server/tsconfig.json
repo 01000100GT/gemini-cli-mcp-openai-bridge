@@ -1,22 +1,16 @@
 {
-    "compilerOptions": {
-        "target": "ES2020",
-        "module": "ESNext",
-        "moduleResolution": "node",
-        "lib": ["ES2020", "DOM"],
-        "outDir": "dist",
-        "rootDir": "src",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "allowSyntheticDefaultImports": true,
-        "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../core"
     },
-    "include": [
-        "src/**/*.ts"
-    ]
+    {
+      "path": "../cli"
+    }
+  ]
 }
