@@ -94,13 +94,20 @@ export class ApiKeyRotationManager {
         // 更新使用统计
         this.updateKeyUsage(currentKey);
         
+        // 获取当前Key用于返回
+        const keyToReturn = currentKey.key;
+        
+        // 移动到下一个Key，为下次请求做准备
+        this.moveToNextKey();
+        console.log(`[rotation/ApiKeyRotationManager] 已移动到下一个索引: ${this.currentIndex}`);
+        
         // 保存状态
         await this.saveState();
         
-        logger.debug(this.debugMode, `Using API key ${this.currentIndex + 1}/${this.keys.length}`);
-        console.log(`[rotation/ApiKeyRotationManager] 成功获取API Key: ${currentKey.key.substring(0, 10)}...`);
+        logger.debug(this.debugMode, `Using API key ${this.getKeyIndex(currentKey) + 1}/${this.keys.length}`);
+        console.log(`[rotation/ApiKeyRotationManager] 成功获取API Key: ${keyToReturn.substring(0, 10)}...`);
         
-        return currentKey.key;
+        return keyToReturn;
       }
       
       // 移动到下一个Key

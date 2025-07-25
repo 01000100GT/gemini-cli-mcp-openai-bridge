@@ -15,6 +15,17 @@ import { randomUUID } from 'node:crypto';
 
 export function createOpenAIRouter(config: Config, debugMode = false): Router {
   const router = Router();
+  
+  // 修复：创建单例GeminiApiClient实例，避免重复初始化
+  let sharedClient: GeminiApiClient | null = null;
+  
+  const getClient = (): GeminiApiClient => {
+    if (!sharedClient) {
+      console.log('[OpenAI Router] 创建共享的GeminiApiClient实例');
+      sharedClient = new GeminiApiClient(config, debugMode);
+    }
+    return sharedClient;
+  };
 
   // Middleware: Add a requestId to each request.
   router.use((req, res, next) => {
@@ -36,7 +47,7 @@ export function createOpenAIRouter(config: Config, debugMode = false): Router {
       logger.debug(debugMode, 'Request body:', { requestId, body });
       const stream = body.stream !== false;
 
-      const client = new GeminiApiClient(config, debugMode);
+      const client = getClient();
 
       const geminiStream = await client.sendMessageStream({
         model: body.model,
