@@ -8,6 +8,9 @@
 
 gemini-cli/packages/bridge-server/
 
+bridge-server/node_modules
+bridge-server/错误日志/
+测试日志/
 # Dependency directory
 node_modules
 bower_components
