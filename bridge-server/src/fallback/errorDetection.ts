@@ -26,17 +26,36 @@ export function isQuotaExceededError(error: Error | unknown): boolean {
     'daily quota',
     'usage limit',
     'rate limit exceeded',
-    'too many requests'
+    'too many requests',
+    'current quota',
+    'exceeded your current quota',
+    'resource_exhausted',
+    'quotafailure'
   ];
   
   const isQuotaError = quotaKeywords.some(keyword => lowerMessage.includes(keyword));
   
-  if (isQuotaError) {
-    console.log('[fallback/errorDetection] 检测到配额超限错误');
-    logger.warn('Detected quota exceeded error', { error: errorMessage });
+  // 检查429状态码（通常表示配额或限速错误）
+  const status = getErrorStatus(error);
+  const is429Error = status === 429;
+  
+  const result = isQuotaError || is429Error;
+  
+  if (result) {
+    console.log('[fallback/errorDetection] 检测到配额超限错误', { 
+      hasQuotaKeywords: isQuotaError, 
+      is429: is429Error, 
+      status 
+    });
+    logger.warn('Detected quota exceeded error', { 
+      error: errorMessage, 
+      hasQuotaKeywords: isQuotaError, 
+      is429: is429Error, 
+      status 
+    });
   }
   
-  return isQuotaError;
+  return result;
 }
 
 /**
@@ -98,17 +117,38 @@ export function isProQuotaExceededError(error: Error | unknown): boolean {
     'pro model quota',
     'gemini-pro quota',
     'gemini-2.5-pro quota',
-    'pro daily quota'
+    'gemini-2.0-pro quota',
+    'pro daily quota',
+    'model": "gemini-2.5-pro"',
+    'model": "gemini-2.0-pro"',
+    'generatecontentinputtokenspermodelperminute-freetier'
   ];
   
   const isProQuota = proQuotaKeywords.some(keyword => lowerMessage.includes(keyword));
   
-  if (isProQuota) {
-    console.log('[fallback/errorDetection] 检测到Pro模型配额超限错误');
-    logger.warn('Detected Pro model quota exceeded error', { error: errorMessage });
+  // 如果是配额错误且包含Pro模型相关信息，则认为是Pro模型配额错误
+  const isGeneralQuota = isQuotaExceededError(error);
+  const hasProModelInfo = lowerMessage.includes('gemini-2.5-pro') || 
+                          lowerMessage.includes('gemini-2.0-pro') ||
+                          lowerMessage.includes('pro');
+  
+  const result = isProQuota || (isGeneralQuota && hasProModelInfo);
+  
+  if (result) {
+    console.log('[fallback/errorDetection] 检测到Pro模型配额超限错误', {
+      hasProKeywords: isProQuota,
+      hasGeneralQuota: isGeneralQuota,
+      hasProModelInfo: hasProModelInfo
+    });
+    logger.warn('Detected Pro model quota exceeded error', { 
+      error: errorMessage,
+      hasProKeywords: isProQuota,
+      hasGeneralQuota: isGeneralQuota,
+      hasProModelInfo: hasProModelInfo
+    });
   }
   
-  return isProQuota;
+  return result;
 }
 
 /**
@@ -176,8 +216,35 @@ export function getErrorStatus(error: unknown): number | undefined {
     return status;
   }
   
+  // 检查cause属性中的状态码（处理嵌套错误）
+  if ('cause' in error && error.cause && typeof error.cause === 'object') {
+    const causeStatus = getErrorStatus(error.cause);
+    if (causeStatus !== undefined) {
+      console.log(`[fallback/errorDetection] 从error.cause获取状态码: ${causeStatus}`);
+      return causeStatus;
+    }
+  }
+  
   // 尝试从错误消息中解析状态码
   if (error instanceof Error && error.message) {
+    // 首先尝试解析JSON格式的错误消息
+    try {
+      const jsonMatch = error.message.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const errorData = JSON.parse(jsonMatch[0]);
+        if (errorData.error && errorData.error.code) {
+          const status = parseInt(errorData.error.code, 10);
+          if (status >= 100 && status < 600) {
+            console.log(`[fallback/errorDetection] 从JSON错误消息解析状态码: ${status}`);
+            return status;
+          }
+        }
+      }
+    } catch (e) {
+      // JSON解析失败，继续其他方法
+    }
+    
+    // 尝试从错误消息中解析数字状态码
     const statusMatch = error.message.match(/\b(\d{3})\b/);
     if (statusMatch) {
       const status = parseInt(statusMatch[1], 10);
