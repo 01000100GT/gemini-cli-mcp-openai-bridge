@@ -1,0 +1,28 @@
+{
+  "currentIndex": 0,
+  "lastUsed": "2025-01-25T08:00:00.000Z",
+  "totalRequests": 0,
+  "apiKeys": [
+    {
+      "key": "AIzaSyA_your_first_api_key_here",
+      "status": "active",
+      "requestCount": 0,
+      "successCount": 0,
+      "failureCount": 0
+    },
+    {
+      "key": "AIzaSyB_your_second_api_key_here",
+      "status": "active",
+      "requestCount": 0,
+      "successCount": 0,
+      "failureCount": 0
+    },
+    {
+      "key": "AIzaSyC_your_third_api_key_here",
+      "status": "active",
+      "requestCount": 0,
+      "successCount": 0,
+      "failureCount": 0
+    }
+  ]
+}

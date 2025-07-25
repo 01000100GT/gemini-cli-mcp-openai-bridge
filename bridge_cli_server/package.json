@@ -1,0 +1,39 @@
+{
+  "name": "gemini-cli-bridge-server",
+  "version": "1.0.0",
+  "description": "增强版 Gemini CLI Bridge API 服务 - 完整支持 gemini CLI 功能的 OpenAI 兼容 API 服务",
+  "main": "enhanced-api-server.cjs",
+  "scripts": {
+    "start": "node enhanced-api-server.cjs",
+    "dev": "node enhanced-api-server.cjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gemini",
+    "cli",
+    "bridge",
+    "openai",
+    "api",
+    "server",
+    "rotation",
+    "ai",
+    "google"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/gemini-cli-bridge-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/gemini-cli-bridge-server/issues"
+  },
+  "homepage": "https://github.com/your-username/gemini-cli-bridge-server#readme"
+}
