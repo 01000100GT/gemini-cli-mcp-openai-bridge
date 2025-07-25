@@ -43,13 +43,13 @@ node enhanced-api-server.cjs
 ### 3. 测试服务
 ```bash
 # 健康检查
-curl http://localhost:3002/health
+curl http://localhost:8765/health
 
 # 查看轮换状态
-curl http://localhost:3002/v1/rotation/status
+curl http://localhost:8765/v1/rotation/status
 
 # 测试聊天API
-curl -X POST http://localhost:3002/v1/chat/completions \
+curl -X POST http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer any-key" \
   -d '{
@@ -73,7 +73,7 @@ curl -X POST http://localhost:3002/v1/chat/completions \
 ## 🔧 配置说明
 
 ### 环境变量
-- `PORT`: 服务端口（默认3002）
+- `PORT`: 服务端口（默认8765）
 - `GEMINI_API_KEY`: 单个API Key（可选，如果使用轮换功能则不需要）
 
 ### 文件说明
@@ -94,7 +94,7 @@ curl -X POST http://localhost:3002/v1/chat/completions \
 1. **API Keys安全**: 请妥善保管你的API Keys，不要提交到版本控制
 2. **网络访问**: 确保服务器能访问Google AI API
 3. **Gemini CLI**: 确保已安装并配置Gemini CLI
-4. **端口占用**: 默认端口3002，如有冲突请修改
+4. **端口占用**: 默认端口8765，如有冲突请修改
 
 ## 🆘 故障排除
 

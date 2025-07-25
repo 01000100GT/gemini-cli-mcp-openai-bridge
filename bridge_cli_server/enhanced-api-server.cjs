@@ -3,6 +3,9 @@
  * 完整支持gemini CLI的所有功能，包含轮换账号和OpenAI兼容接口
  */
 
+// 加载环境变量配置
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const { 
@@ -18,7 +21,7 @@ const {
  * 提供完整的OpenAI兼容接口，支持所有gemini CLI功能
  */
 class EnhancedGeminiApiServer {
-  constructor(port = 3001) {
+  constructor(port = 8765) {
     this.port = port;
     this.app = express();
     this.isInitialized = false;
@@ -201,7 +204,24 @@ class EnhancedGeminiApiServer {
     try {
       console.log('💬 [聊天完成] 开始处理聊天完成请求');
       
-      const { messages, model = 'gemini-2.5-pro', stream = false, ...otherParams } = req.body;
+      // 从环境变量读取默认参数配置
+      const defaultTemperature = parseFloat(process.env.DEFAULT_TEMPERATURE) || 0.7;
+      const defaultMaxTokens = parseInt(process.env.DEFAULT_MAX_TOKENS) || 1000;
+      const defaultStream = process.env.DEFAULT_STREAM === 'true' || false;
+      
+      console.log(`🔧 [聊天完成] 默认参数配置 - temperature: ${defaultTemperature}, max_tokens: ${defaultMaxTokens}, stream: ${defaultStream}`);
+      
+      // 解构请求参数，使用环境变量中的默认值
+      const { 
+        messages, 
+        model = 'gemini-2.5-pro', 
+        temperature = defaultTemperature,
+        max_tokens = defaultMaxTokens,
+        stream = defaultStream,
+        ...otherParams 
+      } = req.body;
+      
+      console.log(`📊 [聊天完成] 实际使用参数 - temperature: ${temperature}, max_tokens: ${max_tokens}, stream: ${stream}`);
       
       // 验证必需参数
       if (!messages || !Array.isArray(messages)) {
@@ -228,8 +248,14 @@ class EnhancedGeminiApiServer {
         });
       }
       
-      // 构建请求参数
-      const requestParams = { model, ...otherParams };
+      // 构建请求参数，包含所有参数
+      const requestParams = { 
+        model, 
+        temperature, 
+        max_tokens, 
+        stream, 
+        ...otherParams 
+      };
       console.log(`📝 [聊天完成] 请求参数: ${JSON.stringify(requestParams, null, 2)}`);
       
       // 映射CLI参数
@@ -543,7 +569,7 @@ async function main() {
   console.log('🌟 启动增强版Gemini CLI Bridge API服务');
   
   try {
-    const port = process.env.ENHANCED_CLI_SERVER_PORT || 3002;
+    const port = process.env.ENHANCED_CLI_SERVER_PORT || 8765;
     const server = new EnhancedGeminiApiServer(port);
     await server.start();
     

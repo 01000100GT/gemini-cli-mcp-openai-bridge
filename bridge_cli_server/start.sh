@@ -65,7 +65,7 @@ fi
 echo "✅ 配置文件已就绪"
 
 # 设置环境变量
-export ENHANCED_CLI_SERVER_PORT=${ENHANCED_CLI_SERVER_PORT:-3002}
+export ENHANCED_CLI_SERVER_PORT=${ENHANCED_CLI_SERVER_PORT:-8765}
 
 echo "🌐 服务端口: $ENHANCED_CLI_SERVER_PORT"
 echo "📁 工作目录: $(pwd)"

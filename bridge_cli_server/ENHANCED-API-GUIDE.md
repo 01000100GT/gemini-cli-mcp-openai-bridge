@@ -54,7 +54,7 @@ cd bridge_cli_server
 node enhanced-api-server.cjs
 ```
 
-服务将在 `http://localhost:3002` 启动。
+服务将在 `http://localhost:8765` 启动。
 
 ## API 接口文档
 
@@ -182,7 +182,7 @@ POST /v1/chat/completions
 
 **流式响应示例**:
 ```bash
-curl -X POST http://localhost:3002/v1/chat/completions \
+curl -X POST http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-2.5-flash",
@@ -299,7 +299,7 @@ GET /v1/rotation/stats
 
 ### 基础聊天
 ```bash
-curl -X POST http://localhost:3002/v1/chat/completions \
+curl -X POST http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-2.5-pro",
@@ -311,7 +311,7 @@ curl -X POST http://localhost:3002/v1/chat/completions \
 
 ### 启用调试模式的代码生成
 ```bash
-curl -X POST http://localhost:3002/v1/gemini/execute \
+curl -X POST http://localhost:8765/v1/gemini/execute \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "创建一个React组件",
@@ -321,7 +321,7 @@ curl -X POST http://localhost:3002/v1/gemini/execute \
 
 ### 流式响应
 ```bash
-curl -X POST http://localhost:3002/v1/chat/completions \
+curl -X POST http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-2.5-flash",
@@ -347,6 +347,25 @@ curl -X POST http://localhost:3002/v1/chat/completions \
 
 ## 部署建议
 
+## 🔧 环境变量
+
+### 基础配置
+
+| 变量名 | 描述 | 默认值 |
+|--------|------|--------|
+| `ENHANCED_CLI_SERVER_PORT` | 服务端口 | `8765` |
+| `GEMINI_API_KEY_ROTATION_FILE` | 轮换配置文件路径 | `./rotation-state.json` |
+
+### OpenAI兼容接口默认参数
+
+| 变量名 | 描述 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `DEFAULT_TEMPERATURE` | 默认温度参数 | `0.7` | 控制输出的随机性，范围0-2 |
+| `DEFAULT_MAX_TOKENS` | 默认最大令牌数 | `1000` | 控制输出长度 |
+| `DEFAULT_STREAM` | 默认流式输出设置 | `false` | true/false，是否启用流式响应 |
+
+**注意**: 当客户端在请求中提供了 `temperature`、`max_tokens` 或 `stream` 参数时，会覆盖环境变量中的默认值。
+
 ### 生产环境
 1. **使用 PM2 管理进程**:
    ```bash
@@ -361,7 +380,7 @@ curl -X POST http://localhost:3002/v1/chat/completions \
        server_name your-domain.com;
        
        location / {
-           proxy_pass http://localhost:3002;
+           proxy_pass http://localhost:8765;
            proxy_set_header Host $host;
            proxy_set_header X-Real-IP $remote_addr;
        }
@@ -370,8 +389,11 @@ curl -X POST http://localhost:3002/v1/chat/completions \
 
 3. **环境变量配置**:
    ```bash
-   export ENHANCED_CLI_SERVER_PORT=3002
+   export ENHANCED_CLI_SERVER_PORT=8765
    export GEMINI_API_KEY_ROTATION_FILE=/path/to/rotation-state.json
+   export DEFAULT_TEMPERATURE=0.7
+   export DEFAULT_MAX_TOKENS=1000
+   export DEFAULT_STREAM=false
    ```
 
 ### 监控和日志
@@ -386,7 +408,7 @@ curl -X POST http://localhost:3002/v1/chat/completions \
 1. **服务启动失败**:
    - 检查 `gemini` CLI 是否正确安装
    - 验证 `rotation-state.json` 文件格式
-   - 确认端口 3002 未被占用
+   - 确认端口 8765 未被占用
 
 2. **API Key 轮换不工作**:
    - 检查 `rotation-state.json` 文件权限

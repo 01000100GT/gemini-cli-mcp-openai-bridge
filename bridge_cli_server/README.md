@@ -61,7 +61,7 @@ npm install
 npm start
 ```
 
-服务将在 `http://localhost:3002` 启动。
+服务将在 `http://localhost:8765` 启动。
 
 ## 📋 主要功能
 
@@ -78,12 +78,12 @@ npm start
 
 ### 健康检查
 ```bash
-curl http://localhost:3002/health
+curl http://localhost:8765/health
 ```
 
 ### OpenAI 兼容聊天接口
 ```bash
-curl -X POST http://localhost:3002/v1/chat/completions \
+curl -X POST http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-2.5-pro",
@@ -95,7 +95,7 @@ curl -X POST http://localhost:3002/v1/chat/completions \
 
 ### Gemini CLI 直接执行
 ```bash
-curl -X POST http://localhost:3002/v1/gemini/execute \
+curl -X POST http://localhost:8765/v1/gemini/execute \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "写一个Python函数来计算斐波那契数列",
@@ -105,7 +105,7 @@ curl -X POST http://localhost:3002/v1/gemini/execute \
 
 ### 轮换状态查看
 ```bash
-curl http://localhost:3002/v1/rotation/status
+curl http://localhost:8765/v1/rotation/status
 ```
 
 ## 📖 完整文档
@@ -114,10 +114,22 @@ curl http://localhost:3002/v1/rotation/status
 
 ## 🔧 环境变量
 
+### 基础配置
+
 | 变量名 | 描述 | 默认值 |
 |--------|------|--------|
-| `ENHANCED_CLI_SERVER_PORT` | 服务端口 | `3002` |
+| `ENHANCED_CLI_SERVER_PORT` | 服务端口 | `8765` |
 | `GEMINI_API_KEY_ROTATION_FILE` | 轮换配置文件路径 | `./rotation-state.json` |
+
+### OpenAI兼容接口默认参数
+
+| 变量名 | 描述 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `DEFAULT_TEMPERATURE` | 默认温度参数 | `0.7` | 控制输出的随机性，范围0-2 |
+| `DEFAULT_MAX_TOKENS` | 默认最大令牌数 | `1000` | 控制输出长度 |
+| `DEFAULT_STREAM` | 默认流式输出设置 | `false` | true/false，是否启用流式响应 |
+
+**注意**: 当客户端在请求中提供了 `temperature`、`max_tokens` 或 `stream` 参数时，会覆盖环境变量中的默认值。
 
 ## 📁 文件结构
 
@@ -166,7 +178,7 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3002
+EXPOSE 8765
 
 CMD ["npm", "start"]
 ```
@@ -178,7 +190,7 @@ CMD ["npm", "start"]
 1. **服务启动失败**:
    - 检查 `gemini` CLI 是否正确安装: `gemini --version`
    - 验证 `rotation-state.json` 文件格式
-   - 确认端口 3002 未被占用
+   - 确认端口 8765 未被占用
 
 2. **API Key 轮换不工作**:
    - 检查 `rotation-state.json` 文件权限

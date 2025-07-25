@@ -64,10 +64,14 @@ class GeminiCliParameterMapper {
       }
     }
     
-    // 包含所有文件上下文
-    if (openaiRequest.all_files || openaiRequest.include_all_files) {
+    // 默认启用所有文件上下文 - 项目要求默认包含文件上下文
+    // 除非明确设置为false，否则总是包含所有文件
+    const shouldIncludeAllFiles = openaiRequest.all_files !== false && openaiRequest.include_all_files !== false;
+    if (shouldIncludeAllFiles) {
       args.push('--all-files');
-      console.log('[GeminiCliParameterMapper] 启用所有文件上下文');
+      console.log('[GeminiCliParameterMapper] 默认启用所有文件上下文（项目配置）');
+    } else {
+      console.log('[GeminiCliParameterMapper] 明确禁用文件上下文');
     }
     
     // 显示内存使用情况
@@ -181,14 +185,65 @@ class SimpleApiKeyRotator {
 
   /**
    * 初始化轮换器，加载配置
+   * 优先从环境变量GEMINI_MULTI_ACCOUNTS读取，fallback到配置文件
    */
   async initialize() {
     try {
-      console.log('[SimpleApiKeyRotator] 开始初始化，加载配置文件:', this.configFile);
+      console.log('[SimpleApiKeyRotator] 开始初始化API Key轮换器');
       
-      // 尝试读取配置文件
+      // 优先尝试从环境变量读取配置
+      const envConfig = process.env.GEMINI_MULTI_ACCOUNTS;
+      if (envConfig) {
+        console.log('[SimpleApiKeyRotator] 从环境变量GEMINI_MULTI_ACCOUNTS加载配置');
+        
+        try {
+          const multiAccountsConfig = JSON.parse(envConfig);
+          
+          if (multiAccountsConfig.enabled && multiAccountsConfig.accounts && Array.isArray(multiAccountsConfig.accounts)) {
+            // 将环境变量格式转换为rotation-state.json格式
+            const activeAccounts = multiAccountsConfig.accounts.filter(account => account.status === 'active');
+            
+            this.apiKeys = activeAccounts.map(account => ({
+              key: account.apiKey,
+              id: account.id,
+              name: account.name,
+              status: account.status,
+              requestCount: 0,
+              successCount: 0,
+              failureCount: 0,
+              quota: account.quota || { daily: 100, monthly: 3000 }
+            }));
+            
+            this.currentIndex = 0;
+            
+            console.log(`[SimpleApiKeyRotator] 从环境变量加载了 ${this.apiKeys.length} 个活跃API Key`);
+            
+            // 初始化使用统计
+            this.apiKeys.forEach(key => {
+              this.usageStats.set(key.key, {
+                requests: 0,
+                successes: 0,
+                failures: 0,
+                lastUsed: null
+              });
+              console.log(`[SimpleApiKeyRotator] 初始化API Key统计: ${key.name} (${key.key.substring(0, 10)}...)`);
+            });
+            
+            return true;
+          }
+        } catch (envParseError) {
+          console.error('[SimpleApiKeyRotator] 解析环境变量GEMINI_MULTI_ACCOUNTS失败:', envParseError.message);
+          console.log('[SimpleApiKeyRotator] 将尝试从配置文件加载');
+        }
+      }
+      
+      // Fallback: 从配置文件读取
+      console.log('[SimpleApiKeyRotator] 从配置文件加载:', this.configFile);
+      
       const data = await fs.readFile(this.configFile, 'utf8');
-      const config = JSON.parse(data);
+      const rawConfig = JSON.parse(data);
+      console.log('[SimpleApiKeyRotator] 开始解析配置文件中的环境变量引用');
+      const config = this.resolveObjectEnvironmentVariables(rawConfig);
       
       if (config.apiKeys && Array.isArray(config.apiKeys)) {
         this.apiKeys = config.apiKeys.filter(key => key.status === 'active');
@@ -199,7 +254,7 @@ class SimpleApiKeyRotator {
           this.currentIndex = 0;
         }
         
-        console.log(`[SimpleApiKeyRotator] 加载了 ${this.apiKeys.length} 个活跃API Key`);
+        console.log(`[SimpleApiKeyRotator] 从配置文件加载了 ${this.apiKeys.length} 个活跃API Key`);
         console.log(`[SimpleApiKeyRotator] 当前索引: ${this.currentIndex}`);
         
         // 初始化使用统计
@@ -210,6 +265,7 @@ class SimpleApiKeyRotator {
             failures: key.failureCount || 0,
             lastUsed: key.lastUsed ? new Date(key.lastUsed) : null
           });
+          console.log(`[SimpleApiKeyRotator] 初始化API Key统计: ${key.name} (${key.key.substring(0, 10)}...)`);
         });
         
         return true;
@@ -266,6 +322,49 @@ class SimpleApiKeyRotator {
         console.log(`[SimpleApiKeyRotator] 报告失败使用: ${apiKey.substring(0, 10)}... (失败: ${stats.failures})`);
       }
     }
+  }
+
+  /**
+   * 解析字符串中的环境变量引用
+   * 将 ${VARIABLE_NAME} 格式替换为实际的环境变量值
+   * @param {string} str - 包含环境变量引用的字符串
+   * @returns {string} 解析后的字符串
+   */
+  resolveEnvironmentVariables(str) {
+    if (typeof str !== 'string') {
+      return str;
+    }
+    
+    // 匹配 ${VARIABLE_NAME} 格式的环境变量引用
+    return str.replace(/\$\{([^}]+)\}/g, (match, varName) => {
+      const envValue = process.env[varName];
+      if (envValue === undefined) {
+        console.warn(`[SimpleApiKeyRotator] 环境变量 ${varName} 未定义，保持原始值: ${match}`);
+        return match;
+      }
+      console.log(`[SimpleApiKeyRotator] 解析环境变量: ${varName} -> ${envValue.substring(0, 10)}...`);
+      return envValue;
+    });
+  }
+
+  /**
+   * 递归解析对象中的环境变量引用
+   * @param {any} obj - 要解析的对象
+   * @returns {any} 解析后的对象
+   */
+  resolveObjectEnvironmentVariables(obj) {
+    if (typeof obj === 'string') {
+      return this.resolveEnvironmentVariables(obj);
+    } else if (Array.isArray(obj)) {
+      return obj.map(item => this.resolveObjectEnvironmentVariables(item));
+    } else if (obj && typeof obj === 'object') {
+      const resolved = {};
+      for (const [key, value] of Object.entries(obj)) {
+        resolved[key] = this.resolveObjectEnvironmentVariables(value);
+      }
+      return resolved;
+    }
+    return obj;
   }
 
   /**
@@ -330,9 +429,13 @@ function executeGeminiCli(userMessage, cliArgs = [], apiKey = null) {
       console.log(`🔐 [executeGeminiCli] 设置环境变量 GEMINI_API_KEY`);
     }
     
+    // 创建一个临时的空目录作为工作目录，避免文件发现扫描
+    const tempDir = require('os').tmpdir();
+    
     const child = spawn('gemini', fullArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: env
+      env: env,
+      cwd: tempDir  // 在临时目录中运行，避免扫描项目文件
     });
     
     let output = '';
