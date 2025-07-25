@@ -207,8 +207,49 @@ function findEnvFile(startDir: string): string | null {
 }
 
 export function loadEnvironment(): void {
-  const envFilePath = findEnvFile(process.cwd());
-  if (envFilePath) {
-    dotenv.config({ path: envFilePath, quiet: true });
+  const currentDir = process.cwd();
+  console.log(`[DEBUG] config.ts - loadEnvironment: 当前工作目录: ${currentDir}`);
+  
+  // 修复：添加更多可能的.env文件位置，包括用户发现的正确位置
+  const possibleEnvPaths = [
+    path.join(currentDir, '.env'), // 当前工作目录
+    path.join(currentDir, 'gemini-cli/packages/bridge-server/.env'), // 用户发现的位置1
+    path.join(currentDir, 'bridge-server/.env'), // 相对路径
+    '/Users/sss/devprog/item_intre/gemini-cli-mcp-openai-bridge/gemini-cli/packages/bridge-server/.env', // 用户发现的绝对路径
+    path.join(os.homedir(), GEMINI_DIR, '.env') // 用户目录
+  ];
+  
+  console.log(`[DEBUG] config.ts - loadEnvironment: 查找.env文件路径:`);
+  possibleEnvPaths.forEach((envPath, index) => {
+    console.log(`[DEBUG] config.ts - loadEnvironment: ${index + 1}. ${envPath}`);
+  });
+  
+  // 按优先级查找.env文件
+  let envPath: string | null = null;
+  
+  for (const possiblePath of possibleEnvPaths) {
+    if (fs.existsSync(possiblePath)) {
+      envPath = possiblePath;
+      console.log(`[DEBUG] config.ts - loadEnvironment: 找到.env文件: ${envPath}`);
+      break;
+    }
   }
+  
+  if (!envPath) {
+    console.log(`[DEBUG] config.ts - loadEnvironment: 未找到.env文件`);
+  }
+  
+  if (envPath) {
+    dotenv.config({ path: envPath });
+    console.log(`[DEBUG] config.ts - loadEnvironment: .env文件加载成功: ${envPath}`);
+  } else {
+    console.log(`[DEBUG] config.ts - loadEnvironment: 没有找到.env文件，使用系统环境变量`);
+  }
+  
+  // 输出关键环境变量的加载情况
+  console.log(`[DEBUG] config.ts - loadEnvironment: 关键环境变量加载情况:`);
+  console.log(`[DEBUG] config.ts - loadEnvironment: MULTI_ACCOUNT_ENABLED = ${process.env.MULTI_ACCOUNT_ENABLED}`);
+  console.log(`[DEBUG] config.ts - loadEnvironment: GEMINI_MULTI_ACCOUNTS = ${process.env.GEMINI_MULTI_ACCOUNTS ? '已设置' : '未设置'}`);
+  console.log(`[DEBUG] config.ts - loadEnvironment: GEMINI_API_KEY = ${process.env.GEMINI_API_KEY ? '已设置' : '未设置'}`);
+  console.log(`[DEBUG] config.ts - loadEnvironment: GEMINI_PERSISTENCE_FILE = ${process.env.GEMINI_PERSISTENCE_FILE}`);
 }

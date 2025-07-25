@@ -28,6 +28,8 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import path from 'path';
 import readline from 'readline';
+// 导入API Key轮换服务
+import { RotationService } from './rotation/RotationService.js';
 
 function mergeMcpServers(
   settings: Settings,
@@ -242,6 +244,25 @@ async function startMcpServer() {
 
   // Log the model being used for tools. This is now set in loadServerConfig.
   logger.debug(debugMode, `Using model for tools: ${config.getModel()}`);
+
+  // 初始化API Key轮换服务
+  let rotationService: RotationService | null = null;
+  try {
+    rotationService = new RotationService();
+    await rotationService.initialize();
+    logger.info('✅ API Key轮换服务初始化成功');
+    
+    // 输出轮换状态信息
+    const status = await rotationService.getRotationStatus();
+    logger.info('API Key轮换状态', {
+      totalKeys: status.totalKeys,
+      activeKeys: status.activeKeys,
+      isEnabled: status.isEnabled
+    });
+  } catch (error) {
+    logger.warn('⚠️ API Key轮换服务初始化失败，将使用默认配置', error);
+    rotationService = null;
+  }
 
   // Initialize and start MCP Bridge and OpenAI services.
   const mcpBridge = new GcliMcpBridge(

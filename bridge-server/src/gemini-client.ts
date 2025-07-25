@@ -18,8 +18,8 @@ import {
   type MessageContentPart,
   type OpenAIChatCompletionRequest,
   type StreamChunk,
-  type ReasoningData,
 } from './types.js';
+import { RotationService } from './rotation/RotationService.js';
 import { logger } from './utils/logger.js';
 
 /**
@@ -60,13 +60,45 @@ function sanitizeGeminiSchema(schema: any): any {
 
 export class GeminiApiClient {
   private readonly config: Config;
-  private readonly contentGenerator;
   private readonly debugMode: boolean;
+  // 添加API Key轮换服务
+  private rotationService: RotationService | null = null;
+  // 修复：添加初始化状态跟踪，解决异步竞态条件问题
+  private isInitializing = false;
+  private initializationPromise?: Promise<void>;
 
   constructor(config: Config, debugMode = false) {
     this.config = config;
-    this.contentGenerator = this.config.getGeminiClient().getContentGenerator();
     this.debugMode = debugMode;
+    // 修复：启动异步初始化但不阻塞构造函数
+    this.initializationPromise = this.initializeRotationService();
+  }
+
+  /**
+   * 初始化API Key轮换服务
+   * 如果启用了多账号模式，则创建轮换服务实例
+   */
+  private async initializeRotationService(): Promise<void> {
+    this.isInitializing = true;
+    console.log('[GeminiApiClient] [客户端时序1] 开始初始化API Key轮换服务');
+    
+    try {
+      console.log('[GeminiApiClient] [客户端时序2] 创建RotationService实例');
+      this.rotationService = new RotationService();
+      
+      console.log('[GeminiApiClient] [客户端时序3] 调用RotationService.initialize()');
+      await this.rotationService.initialize();
+      
+      console.log('[GeminiApiClient] [客户端时序4] API Key轮换服务初始化成功');
+      logger.debug(this.debugMode, 'API Key轮换服务初始化成功');
+    } catch (error) {
+      console.error('[GeminiApiClient] [客户端时序ERROR] API Key轮换服务初始化失败:', error);
+      logger.warn(this.debugMode, 'API Key轮换服务初始化失败，使用默认配置', error);
+      this.rotationService = null;
+    } finally {
+      this.isInitializing = false;
+      console.log('[GeminiApiClient] [客户端时序5] 初始化流程完成');
+    }
   }
 
   /**
@@ -226,7 +258,8 @@ export class GeminiApiClient {
   }
 
   /**
-   * Sends a streaming request to the Gemini API.
+   * 发送流式请求到Gemini API
+   * 支持API Key轮换和错误重试
    */
   public async sendMessageStream({
     model,
@@ -238,6 +271,58 @@ export class GeminiApiClient {
     messages: OpenAIMessage[];
     tools?: OpenAIChatCompletionRequest['tools'];
     tool_choice?: any;
+  }): Promise<AsyncGenerator<StreamChunk>> {
+    console.log('[GeminiApiClient] [请求时序1] 收到sendMessageStream请求');
+    
+    // 修复：等待初始化完成
+    if (this.isInitializing && this.initializationPromise) {
+      console.log('[GeminiApiClient] [请求时序2] 检测到初始化正在进行，等待完成...');
+      await this.initializationPromise;
+      console.log('[GeminiApiClient] [请求时序3] 初始化等待完成');
+    }
+    
+    // 如果启用了API Key轮换，获取当前可用的API Key
+    let currentApiKey: string | null = null;
+    if (this.rotationService) {
+      try {
+        console.log('[GeminiApiClient] [请求时序4] 开始获取轮换API Key');
+        currentApiKey = await this.rotationService.getApiKey();
+        console.log('[GeminiApiClient] [请求时序5] 成功获取轮换API Key');
+        logger.debug(this.debugMode, '获取到轮换API Key', { keyPrefix: currentApiKey?.substring(0, 10) + '...' });
+      } catch (error) {
+        console.error('[GeminiApiClient] [请求时序ERROR] 获取轮换API Key失败:', error);
+        logger.warn(this.debugMode, '获取轮换API Key失败，使用默认配置', error);
+      }
+    } else {
+      console.log('[GeminiApiClient] [请求时序4] 轮换服务未启用，跳过API Key获取');
+    }
+
+    console.log('[GeminiApiClient] [请求时序6] 开始执行实际请求');
+    return this.executeStreamRequest({
+      model,
+      messages,
+      tools,
+      tool_choice,
+      apiKey: currentApiKey
+    });
+  }
+
+  /**
+   * 执行实际的流式请求
+   * 包含错误处理和重试逻辑
+   */
+  private async executeStreamRequest({
+    model,
+    messages,
+    tools,
+    tool_choice,
+    apiKey
+  }: {
+    model: string;
+    messages: OpenAIMessage[];
+    tools?: OpenAIChatCompletionRequest['tools'];
+    tool_choice?: any;
+    apiKey?: string | null;
   }): Promise<AsyncGenerator<StreamChunk>> {
     let clientSystemInstruction: Content | undefined = undefined;
     const useInternalPrompt = !!this.config.getUserMemory(); // Check if there is a prompt from GEMINI.md
@@ -269,10 +354,46 @@ export class GeminiApiClient {
       throw new Error('No message to send.');
     }
 
+    // 修复：动态创建ContentGenerator，使用轮换获取的API Key
+    let contentGenerator;
+    if (apiKey) {
+      // 如果有轮换的API Key，创建新的ContentGenerator
+      console.log('[GeminiApiClient] [请求时序7] 使用轮换API Key创建ContentGenerator');
+      const { createContentGenerator, AuthType } = await import('@google/gemini-cli-core');
+      
+      // 修复：直接构造ContentGeneratorConfig，确保apiKey正确传递
+      const dynamicConfig = {
+        model: this.config.getModel(),
+        apiKey: apiKey, // 直接使用轮换获取的API Key
+        vertexai: false,
+        authType: AuthType.USE_GEMINI,
+        proxy: this.config.getProxy()
+      };
+      
+      console.log('[GeminiApiClient] [DEBUG] 动态配置详情:', {
+        model: dynamicConfig.model,
+        hasApiKey: !!dynamicConfig.apiKey,
+        apiKeyPrefix: dynamicConfig.apiKey?.substring(0, 10) + '...',
+        authType: dynamicConfig.authType
+      });
+      
+      try {
+        contentGenerator = await createContentGenerator(dynamicConfig, this.config);
+        logger.debug(this.debugMode, '使用轮换API Key创建ContentGenerator成功');
+      } catch (error) {
+        console.error('[GeminiApiClient] [ERROR] 创建ContentGenerator失败:', error);
+        throw error;
+      }
+    } else {
+      // 使用默认的ContentGenerator
+      console.log('[GeminiApiClient] [请求时序7] 使用默认ContentGenerator');
+      contentGenerator = this.config.getGeminiClient().getContentGenerator();
+    }
+
     // Create a new, isolated chat session for each request.
     const oneShotChat = new GeminiChat(
       this.config,
-      this.contentGenerator,
+      contentGenerator,
       {},
       history,
     );
@@ -302,36 +423,56 @@ export class GeminiApiClient {
 
     
     const prompt_id = Math.random().toString(16).slice(2);
-    const geminiStream = await oneShotChat.sendMessageStream({
-      message: lastMessage.parts || [],
-      config: {
-        tools: geminiTools,
-        ...generationConfig,
-      },
-    }, prompt_id);
+    
+    try {
+      const geminiStream = await oneShotChat.sendMessageStream({
+        message: lastMessage.parts || [],
+        config: {
+          tools: geminiTools,
+          ...generationConfig,
+        },
+      }, prompt_id);
 
-    logger.debug(this.debugMode, 'Got stream from Gemini.');
+      logger.debug(this.debugMode, 'Got stream from Gemini.');
+      
+      // 如果使用了轮换的API Key，报告成功使用
+      if (this.rotationService && apiKey) {
+        this.rotationService.reportUsage(apiKey, true).catch(error => {
+          logger.warn(this.debugMode, '报告API Key使用情况失败', error);
+        });
+      }
 
-    // Transform the event stream to a simpler StreamChunk stream
-    return (async function* (): AsyncGenerator<StreamChunk> {
-      for await (const response of geminiStream) {
-        const parts = response.candidates?.[0]?.content?.parts || [];
-        for (const part of parts) {
-          if (part.text) {
-            yield { type: 'text', data: part.text };
-          }
-          if (part.functionCall && part.functionCall.name) {
-            yield {
-              type: 'tool_code',
-              data: {
-                name: part.functionCall.name,
-                args:
-                  (part.functionCall.args as Record<string, unknown>) ?? {},
-              },
-            };
+      // Transform the event stream to a simpler StreamChunk stream
+      return (async function* (): AsyncGenerator<StreamChunk> {
+        for await (const response of geminiStream) {
+          const parts = response.candidates?.[0]?.content?.parts || [];
+          for (const part of parts) {
+            if (part.text) {
+              yield { type: 'text', data: part.text };
+            }
+            if (part.functionCall && part.functionCall.name) {
+              yield {
+                type: 'tool_code',
+                data: {
+                  name: part.functionCall.name,
+                  args:
+                    (part.functionCall.args as Record<string, unknown>) ?? {},
+                },
+              };
+            }
           }
         }
+      })();
+    } catch (error) {
+      // 如果使用了轮换的API Key，报告失败使用
+      if (this.rotationService && apiKey) {
+        this.rotationService.reportUsage(apiKey, false).catch(reportError => {
+          logger.warn(this.debugMode, '报告API Key使用失败情况时出错', reportError);
+        });
       }
-    })();
+      
+      logger.error(this.debugMode, 'Gemini API请求失败', error);
+      throw error;
+    }
   }
 }

@@ -30,10 +30,12 @@ global.fetch = async (url, options) => {
     logWithPrefix(
       '   Headers:',
       JSON.stringify(
-        Object.fromEntries((options.headers as Headers).entries()),
-        null,
-        2,
-      ),
+          options.headers instanceof Headers 
+            ? Object.fromEntries(Array.from((options.headers as any).entries()) as [string, string][])
+            : options.headers,
+          null,
+          2,
+        ),
     );
   }
   if (options?.body) {
@@ -56,7 +58,7 @@ global.fetch = async (url, options) => {
   );
   logWithPrefix(
     '   Response Headers:',
-    JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2),
+    JSON.stringify(Object.fromEntries(Array.from((response.headers as any).entries()) as [string, string][]), null, 2),
   );
 
   const clonedResponse = response.clone();

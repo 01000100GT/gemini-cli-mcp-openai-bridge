@@ -6,6 +6,8 @@
 .gemini/
 !gemini/config.yaml
 
+gemini-cli/packages/bridge-server/
+
 # Dependency directory
 node_modules
 bower_components

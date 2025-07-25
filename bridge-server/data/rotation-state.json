@@ -1,0 +1,25 @@
+{
+  "currentIndex": 0,
+  "lastUsedTime": "2025-07-25T02:34:56.245Z",
+  "totalRequests": 2,
+  "keys": [
+    {
+      "key": "AIzaSy ",
+      "status": "active",
+      "requestCount": 2,
+      "successCount": 2,
+      "failureCount": 0,
+      "consecutiveFailures": 0,
+      "lastUsed": "2025-07-25T02:34:49.837Z",
+      "lastSuccess": "2025-07-25T02:34:56.245Z"
+    },
+    {
+      "key": "AIza ",
+      "status": "active",
+      "requestCount": 0,
+      "successCount": 0,
+      "failureCount": 0,
+      "consecutiveFailures": 0
+    }
+  ]
+}
