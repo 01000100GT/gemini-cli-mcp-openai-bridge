@@ -64,14 +64,13 @@ class GeminiCliParameterMapper {
       }
     }
     
-    // 默认启用所有文件上下文 - 项目要求默认包含文件上下文
-    // 除非明确设置为false，否则总是包含所有文件
-    const shouldIncludeAllFiles = openaiRequest.all_files !== false && openaiRequest.include_all_files !== false;
-    if (shouldIncludeAllFiles) {
+    // 包含所有文件上下文 - 只有在明确请求时才启用
+    // 默认值为false，需要显式设置为true才会包含文件
+    if (openaiRequest.all_files === true || openaiRequest.include_all_files === true) {
       args.push('--all-files');
-      console.log('[GeminiCliParameterMapper] 默认启用所有文件上下文（项目配置）');
+      console.log('[GeminiCliParameterMapper] 明确启用所有文件上下文');
     } else {
-      console.log('[GeminiCliParameterMapper] 明确禁用文件上下文');
+      console.log('[GeminiCliParameterMapper] 默认不包含文件上下文（需要显式启用）');
     }
     
     // 显示内存使用情况
