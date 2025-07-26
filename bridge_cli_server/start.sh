@@ -73,5 +73,13 @@ echo ""
 echo "🚀 启动服务..."
 echo "================================="
 
+# 设置代理
+
+echo "🔧 设置代理..."
+export http_proxy=http://127.0.0.1:7890
+export https_proxy=http://127.0.0.1:7890
+echo "✅ 代理设置成功 (http://127.0.0.1:7890)"
+
 # 启动服务
-node enhanced-api-server.cjs
+echo "🚀 使用 npm 启动服务..."
+npm run start

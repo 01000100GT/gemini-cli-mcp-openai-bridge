@@ -577,13 +577,14 @@ function executeGeminiCli(userMessage, cliArgs = [], apiKey = null, hasTools = f
       console.log(`🔐 [executeGeminiCli] 设置环境变量 GEMINI_API_KEY`);
     }
     
-    // 创建一个临时的空目录作为工作目录，避免文件发现扫描
-    const tempDir = require('os').tmpdir();
+    // 获取工作目录配置，优先使用环境变量，否则使用系统临时目录
+    const workDir = process.env.GEMINI_WORK_DIR || require('os').tmpdir();
+    console.log(`📁 [executeGeminiCli] 使用工作目录: ${workDir}`);
     
     const child = spawn('gemini', fullArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: env,
-      cwd: tempDir  // 在临时目录中运行，避免扫描项目文件
+      cwd: workDir  // 使用配置的工作目录，避免扫描项目文件
     });
     
     let output = '';
