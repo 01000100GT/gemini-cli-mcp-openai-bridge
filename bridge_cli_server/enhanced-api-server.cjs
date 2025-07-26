@@ -208,8 +208,9 @@ class EnhancedGeminiApiServer {
       const defaultTemperature = parseFloat(process.env.DEFAULT_TEMPERATURE) || 0.7;
       const defaultMaxTokens = parseInt(process.env.DEFAULT_MAX_TOKENS) || 1000;
       const defaultStream = process.env.DEFAULT_STREAM === 'true' || false;
+      const defaultDebug = process.env.DEFAULT_DEBUG === 'true' || false;
       
-      console.log(`🔧 [聊天完成] 默认参数配置 - temperature: ${defaultTemperature}, max_tokens: ${defaultMaxTokens}, stream: ${defaultStream}`);
+      console.log(`🔧 [聊天完成] 默认参数配置 - temperature: ${defaultTemperature}, max_tokens: ${defaultMaxTokens}, stream: ${defaultStream}, debug: ${defaultDebug}`);
       
       // 解构请求参数，使用环境变量中的默认值
       const { 
@@ -218,10 +219,15 @@ class EnhancedGeminiApiServer {
         temperature = defaultTemperature,
         max_tokens = defaultMaxTokens,
         stream = defaultStream,
+        debug = defaultDebug,
+        tools,
+        tool_choice,
+        function_call,
+        functions,
         ...otherParams 
       } = req.body;
       
-      console.log(`📊 [聊天完成] 实际使用参数 - temperature: ${temperature}, max_tokens: ${max_tokens}, stream: ${stream}`);
+      console.log(`📊 [聊天完成] 实际使用参数 - temperature: ${temperature}, max_tokens: ${max_tokens}, stream: ${stream}, debug: ${debug}`);
       
       // 验证必需参数
       if (!messages || !Array.isArray(messages)) {
@@ -235,8 +241,12 @@ class EnhancedGeminiApiServer {
         });
       }
       
+      // 检查是否有function calling请求
+      const hasFunctionCall = tools || functions || function_call || tool_choice;
+      console.log(`🔧 [聊天完成] Function calling检测: ${hasFunctionCall ? '是' : '否'}`);
+      
       // 提取用户消息
-      const userMessage = parameterMapper.extractUserMessage(messages);
+      let userMessage = parameterMapper.extractUserMessage(messages);
       if (!userMessage.trim()) {
         console.error('❌ [聊天完成] 没有找到有效的用户消息');
         return res.status(400).json({
@@ -248,18 +258,27 @@ class EnhancedGeminiApiServer {
         });
       }
       
+      // 如果有function calling请求，增强用户消息
+      if (hasFunctionCall) {
+        userMessage = parameterMapper.enhanceMessageWithTools(userMessage, { tools, functions, tool_choice, function_call });
+        console.log(`🛠️ [聊天完成] 已增强消息以支持function calling`);
+      }
+      
       // 构建请求参数，包含所有参数
       const requestParams = { 
         model, 
         temperature, 
         max_tokens, 
         stream, 
+        debug,
         ...otherParams 
       };
       console.log(`📝 [聊天完成] 请求参数: ${JSON.stringify(requestParams, null, 2)}`);
       
       // 映射CLI参数
       const cliArgs = parameterMapper.mapToGeminiCliArgs(requestParams);
+
+      console.log(`📝 [聊天完成] ssj  CLI参数: ${cliArgs.join(' ')}`);
       
       // 获取API Key（如果启用轮换）
       let apiKey = null;
@@ -270,12 +289,25 @@ class EnhancedGeminiApiServer {
       
       // 执行Gemini CLI
       console.log('🚀 [聊天完成] 开始执行Gemini CLI');
-      const geminiOutput = await executeGeminiCli(userMessage, cliArgs, apiKey);
+      const geminiOutput = await executeGeminiCli(userMessage, cliArgs, apiKey, hasFunctionCall);
       
       // 报告使用结果
       if (this.isInitialized && apiKey) {
         apiKeyRotator.reportUsage(apiKey, true);
         console.log('📊 [聊天完成] 已报告API Key使用成功');
+      }
+      
+      // 解析响应，检查是否包含function call
+      let parsedResponse = geminiOutput;
+      let toolCalls = null;
+      let finishReason = 'stop';
+      
+      if (hasFunctionCall) {
+        const parseResult = parameterMapper.parseFunctionCallResponse(geminiOutput, { tools, functions });
+        parsedResponse = parseResult.content;
+        toolCalls = parseResult.tool_calls;
+        finishReason = parseResult.finish_reason;
+        console.log(`🔍 [聊天完成] Function call解析结果: ${toolCalls ? toolCalls.length + '个调用' : '无调用'}`);
       }
       
       // 处理流式响应
@@ -306,6 +338,16 @@ class EnhancedGeminiApiServer {
       } else {
         // 非流式响应
         console.log('📄 [聊天完成] 处理非流式响应');
+        const message = {
+          role: 'assistant',
+          content: parsedResponse
+        };
+        
+        // 如果有tool calls，添加到消息中
+        if (toolCalls && toolCalls.length > 0) {
+          message.tool_calls = toolCalls;
+        }
+        
         const response = {
           id: 'chatcmpl-' + Date.now(),
           object: 'chat.completion',
@@ -313,11 +355,8 @@ class EnhancedGeminiApiServer {
           model: model,
           choices: [{
             index: 0,
-            message: {
-              role: 'assistant',
-              content: geminiOutput
-            },
-            finish_reason: 'stop'
+            message: message,
+            finish_reason: finishReason
           }],
           usage: {
             prompt_tokens: userMessage.length,
@@ -374,8 +413,8 @@ class EnhancedGeminiApiServer {
         apiKey = apiKeyRotator.getNextApiKey();
       }
       
-      // 执行CLI命令
-      const output = await executeGeminiCli(prompt, args, apiKey);
+      // 执行CLI命令（直接执行模式，不涉及function calling）
+      const output = await executeGeminiCli(prompt, args, apiKey, false);
       
       // 报告使用结果
       if (use_rotation && this.isInitialized && apiKey) {
@@ -409,8 +448,8 @@ class EnhancedGeminiApiServer {
     try {
       console.log('🔌 [扩展列表] 获取扩展列表');
       
-      // 执行gemini --list-extensions命令
-      const output = await executeGeminiCli('', ['--list-extensions']);
+      // 执行gemini --list-extensions命令（系统命令，不涉及function calling）
+      const output = await executeGeminiCli('', ['--list-extensions'], null, false);
       
       res.json({
         success: true,

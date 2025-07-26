@@ -47,8 +47,8 @@ class GeminiCliParameterMapper {
       console.log(`[GeminiCliParameterMapper] 映射模型: ${openaiRequest.model} -> ${geminiModel}`);
     }
     
-    // 调试模式
-    if (openaiRequest.debug || openaiRequest.stream) {
+    // 调试模式 - 独立控制
+    if (openaiRequest.debug) {
       args.push('--debug');
       console.log('[GeminiCliParameterMapper] 启用调试模式');
     }
@@ -165,6 +165,119 @@ class GeminiCliParameterMapper {
     console.log(`[GeminiCliParameterMapper] 提取用户消息: ${userMessages.substring(0, 100)}...`);
     return userMessages;
   }
+
+  /**
+   * 增强消息以支持function calling
+   * @param {string} userMessage - 原始用户消息
+   * @param {Object} toolsConfig - tools配置对象
+   * @returns {string} 增强后的消息
+   */
+  enhanceMessageWithTools(userMessage, toolsConfig) {
+    const { tools, functions, tool_choice, function_call } = toolsConfig;
+    
+    let enhancedMessage = userMessage;
+    
+    // 处理tools参数（OpenAI新格式）
+    if (tools && Array.isArray(tools)) {
+      enhancedMessage += '\n\n可用工具函数：\n';
+      tools.forEach((tool, index) => {
+        if (tool.type === 'function' && tool.function) {
+          const func = tool.function;
+          enhancedMessage += `${index + 1}. ${func.name}: ${func.description || ''}\n`;
+          if (func.parameters) {
+            enhancedMessage += `   参数: ${JSON.stringify(func.parameters, null, 2)}\n`;
+          }
+        }
+      });
+      
+      // 添加function calling指导
+      enhancedMessage += '\n请根据用户需求，如果需要调用函数，请按以下JSON格式返回：\n';
+      enhancedMessage += '```json\n{\n  "function_call": {\n    "name": "函数名",\n    "arguments": "参数JSON字符串"\n  }\n}\n```\n';
+    }
+    
+    // 处理functions参数（OpenAI旧格式）
+    if (functions && Array.isArray(functions)) {
+      enhancedMessage += '\n\n可用函数：\n';
+      functions.forEach((func, index) => {
+        enhancedMessage += `${index + 1}. ${func.name}: ${func.description || ''}\n`;
+        if (func.parameters) {
+          enhancedMessage += `   参数: ${JSON.stringify(func.parameters, null, 2)}\n`;
+        }
+      });
+      
+      enhancedMessage += '\n请根据用户需求，如果需要调用函数，请按以下JSON格式返回：\n';
+      enhancedMessage += '```json\n{\n  "function_call": {\n    "name": "函数名",\n    "arguments": "参数JSON字符串"\n  }\n}\n```\n';
+    }
+    
+    // 处理tool_choice或function_call强制调用
+    if (tool_choice && tool_choice !== 'auto' && tool_choice !== 'none') {
+      if (typeof tool_choice === 'object' && tool_choice.function) {
+        enhancedMessage += `\n\n请务必调用函数: ${tool_choice.function.name}\n`;
+      }
+    }
+    
+    if (function_call && function_call !== 'auto' && function_call !== 'none') {
+      if (typeof function_call === 'object' && function_call.name) {
+        enhancedMessage += `\n\n请务必调用函数: ${function_call.name}\n`;
+      }
+    }
+    
+    console.log(`[GeminiCliParameterMapper] 增强消息长度: ${enhancedMessage.length}`);
+    return enhancedMessage;
+  }
+
+  /**
+   * 解析Gemini响应中的function call
+   * @param {string} geminiOutput - Gemini的原始输出
+   * @param {Object} toolsConfig - tools配置对象
+   * @returns {Object} 解析结果
+   */
+  parseFunctionCallResponse(geminiOutput, toolsConfig) {
+    const { tools, functions } = toolsConfig;
+    
+    console.log(`[GeminiCliParameterMapper] 开始解析function call响应`);
+    
+    // 尝试从响应中提取JSON格式的function call
+    const jsonMatch = geminiOutput.match(/```json\s*({[\s\S]*?})\s*```/i);
+    
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[1]);
+        
+        if (parsed.function_call && parsed.function_call.name) {
+          console.log(`[GeminiCliParameterMapper] 检测到function call: ${parsed.function_call.name}`);
+          
+          // 构建OpenAI格式的tool_calls
+          const toolCalls = [{
+            id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            type: 'function',
+            function: {
+              name: parsed.function_call.name,
+              arguments: parsed.function_call.arguments || '{}'
+            }
+          }];
+          
+          // 移除JSON部分，保留其他内容作为content
+          const content = geminiOutput.replace(/```json[\s\S]*?```/i, '').trim();
+          
+          return {
+            content: content || null,
+            tool_calls: toolCalls,
+            finish_reason: 'tool_calls'
+          };
+        }
+      } catch (error) {
+        console.error(`[GeminiCliParameterMapper] 解析function call JSON失败:`, error.message);
+      }
+    }
+    
+    // 如果没有检测到function call，返回原始内容
+    return {
+      content: geminiOutput,
+      tool_calls: null,
+      finish_reason: 'stop'
+    };
+  }
 }
 
 /**
@@ -179,7 +292,7 @@ class SimpleApiKeyRotator {
     // 使用传入的配置文件路径或默认路径
     this.configFile = path.resolve(configFile);
     
-    console.log('[SimpleApiKeyRotator] 初始化API Key轮换器');
+    console.log('[SimpleApiKeyRotator] 初始化API Key轮换器: ', this.configFile);
   }
 
   /**
@@ -193,7 +306,7 @@ class SimpleApiKeyRotator {
       // 优先尝试从环境变量读取配置
       const envConfig = process.env.GEMINI_MULTI_ACCOUNTS;
       if (envConfig) {
-        console.log('[SimpleApiKeyRotator] 从环境变量GEMINI_MULTI_ACCOUNTS加载配置');
+        console.log('[SimpleApiKeyRotator] 从环境变量GEMINI_MULTI_ACCOUNTS加载配置: ', envConfig);
         
         try {
           const multiAccountsConfig = JSON.parse(envConfig);
@@ -403,13 +516,49 @@ const parameterMapper = new GeminiCliParameterMapper();
 const apiKeyRotator = new SimpleApiKeyRotator('./rotation-state.json');
 
 /**
+ * 计算执行超时时间
+ * @param {Array} cliArgs - CLI参数数组
+ * @param {boolean} hasTools - 是否包含function calling
+ * @returns {number} 超时时间（毫秒）
+ */
+function calculateTimeout(cliArgs = [], hasTools = false) {
+  let timeout = parseInt(process.env.DEFAULT_TIMEOUT) || 60;
+  
+  // Function Calling 需要更长时间
+  if (hasTools) {
+    timeout = parseInt(process.env.FUNCTION_CALL_TIMEOUT) || 120;
+    console.log(`[calculateTimeout] 检测到Function Calling，使用超时: ${timeout}秒`);
+  }
+  
+  // 复杂操作需要更长时间
+  const complexArgs = ['--sandbox', '--all-files', '--show-memory-usage', '--checkpointing'];
+  const hasComplexArgs = complexArgs.some(arg => cliArgs.includes(arg));
+  
+  if (hasComplexArgs) {
+    timeout = parseInt(process.env.COMPLEX_QUERY_TIMEOUT) || 180;
+    console.log(`[calculateTimeout] 检测到复杂操作参数，使用超时: ${timeout}秒`);
+  }
+  
+  // 应用最大超时限制
+  const maxTimeout = parseInt(process.env.MAX_TIMEOUT) || 300;
+  if (timeout > maxTimeout) {
+    timeout = maxTimeout;
+    console.log(`[calculateTimeout] 超时时间超过最大限制，调整为: ${timeout}秒`);
+  }
+  
+  console.log(`[calculateTimeout] 最终超时设置: ${timeout}秒`);
+  return timeout * 1000; // 转换为毫秒
+}
+
+/**
  * 执行Gemini CLI命令
  * @param {string} userMessage - 用户消息
  * @param {Array} cliArgs - CLI参数数组
  * @param {string} apiKey - 要使用的API Key
+ * @param {boolean} hasTools - 是否包含function calling
  * @returns {Promise<string>} Gemini的响应
  */
-function executeGeminiCli(userMessage, cliArgs = [], apiKey = null) {
+function executeGeminiCli(userMessage, cliArgs = [], apiKey = null, hasTools = false) {
   console.log('🚀 [executeGeminiCli] 开始执行Gemini CLI命令');
   console.log(`📝 [executeGeminiCli] 用户消息: ${userMessage.substring(0, 100)}...`);
   console.log(`⚙️ [executeGeminiCli] CLI参数: ${cliArgs.join(' ')}`);
@@ -470,12 +619,13 @@ function executeGeminiCli(userMessage, cliArgs = [], apiKey = null) {
       reject(err);
     });
     
-    // 设置超时
-    setTimeout(() => {
-      console.log('⏰ [executeGeminiCli] 执行超时，终止进程');
+    // 计算并设置动态超时
+    const timeoutMs = calculateTimeout(cliArgs, hasTools);
+    const timeoutHandle = setTimeout(() => {
+      console.log(`⏰ [executeGeminiCli] 执行超时（${timeoutMs/1000}秒），终止进程`);
       child.kill('SIGTERM');
-      reject(new Error('Gemini CLI执行超时'));
-    }, 60000); // 60秒超时
+      reject(new Error(`Gemini CLI执行超时（${timeoutMs/1000}秒）`));
+    }, timeoutMs);
   });
 }
 
