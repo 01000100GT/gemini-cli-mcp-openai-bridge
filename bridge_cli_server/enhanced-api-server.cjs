@@ -276,7 +276,7 @@ class EnhancedGeminiApiServer {
       console.log(`📝 [聊天完成] 请求参数: ${JSON.stringify(requestParams, null, 2)}`);
       
       // 映射CLI参数
-      const cliArgs = parameterMapper.mapToGeminiCliArgs(requestParams);
+      const cliArgs = parameterMapper.mapToGeminiCliArgs(requestParams, { tools, functions });
 
       console.log(`📝 [聊天完成] ssj  CLI参数: ${cliArgs.join(' ')}`);
       

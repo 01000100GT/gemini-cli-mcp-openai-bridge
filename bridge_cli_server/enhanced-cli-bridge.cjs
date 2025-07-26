@@ -35,11 +35,37 @@ class GeminiCliParameterMapper {
    * @param {Object} openaiRequest - OpenAI格式的请求参数
    * @returns {Array} gemini CLI命令参数数组
    */
-  mapToGeminiCliArgs(openaiRequest) {
+  mapToGeminiCliArgs(openaiRequest, toolsConfig = {}) {
     const args = [];
-    
+    const { tools, functions } = toolsConfig;
+
     console.log('[GeminiCliParameterMapper] 开始映射参数:', JSON.stringify(openaiRequest, null, 2));
-    
+
+    // 如果有工具，强制使用JSON输出
+    const hasTools = (tools && tools.length > 0) || (functions && functions.length > 0);
+    if (hasTools) {
+      args.push('--json');
+      console.log('[GeminiCliParameterMapper] 检测到工具，启用--json输出模式');
+
+      const allFunctions = [];
+      if (tools && Array.isArray(tools)) {
+        tools.forEach(tool => {
+          if (tool.type === 'function' && tool.function) {
+            allFunctions.push(tool.function);
+          }
+        });
+      }
+      if (functions && Array.isArray(functions)) {
+        allFunctions.push(...functions);
+      }
+
+      if (allFunctions.length > 0) {
+        const geminiTools = JSON.stringify({ function_declarations: allFunctions });
+        args.push('--tools', geminiTools);
+        console.log('[GeminiCliParameterMapper] 添加 --tools 参数');
+      }
+    }
+
     // 模型参数映射
     if (openaiRequest.model) {
       const geminiModel = this.modelMapping[openaiRequest.model] || openaiRequest.model;
@@ -173,57 +199,9 @@ class GeminiCliParameterMapper {
    * @returns {string} 增强后的消息
    */
   enhanceMessageWithTools(userMessage, toolsConfig) {
-    const { tools, functions, tool_choice, function_call } = toolsConfig;
-    
-    let enhancedMessage = userMessage;
-    
-    // 处理tools参数（OpenAI新格式）
-    if (tools && Array.isArray(tools)) {
-      enhancedMessage += '\n\n可用工具函数：\n';
-      tools.forEach((tool, index) => {
-        if (tool.type === 'function' && tool.function) {
-          const func = tool.function;
-          enhancedMessage += `${index + 1}. ${func.name}: ${func.description || ''}\n`;
-          if (func.parameters) {
-            enhancedMessage += `   参数: ${JSON.stringify(func.parameters, null, 2)}\n`;
-          }
-        }
-      });
-      
-      // 添加function calling指导
-      enhancedMessage += '\n请根据用户需求，如果需要调用函数，请按以下JSON格式返回：\n';
-      enhancedMessage += '```json\n{\n  "function_call": {\n    "name": "函数名",\n    "arguments": "参数JSON字符串"\n  }\n}\n```\n';
-    }
-    
-    // 处理functions参数（OpenAI旧格式）
-    if (functions && Array.isArray(functions)) {
-      enhancedMessage += '\n\n可用函数：\n';
-      functions.forEach((func, index) => {
-        enhancedMessage += `${index + 1}. ${func.name}: ${func.description || ''}\n`;
-        if (func.parameters) {
-          enhancedMessage += `   参数: ${JSON.stringify(func.parameters, null, 2)}\n`;
-        }
-      });
-      
-      enhancedMessage += '\n请根据用户需求，如果需要调用函数，请按以下JSON格式返回：\n';
-      enhancedMessage += '```json\n{\n  "function_call": {\n    "name": "函数名",\n    "arguments": "参数JSON字符串"\n  }\n}\n```\n';
-    }
-    
-    // 处理tool_choice或function_call强制调用
-    if (tool_choice && tool_choice !== 'auto' && tool_choice !== 'none') {
-      if (typeof tool_choice === 'object' && tool_choice.function) {
-        enhancedMessage += `\n\n请务必调用函数: ${tool_choice.function.name}\n`;
-      }
-    }
-    
-    if (function_call && function_call !== 'auto' && function_call !== 'none') {
-      if (typeof function_call === 'object' && function_call.name) {
-        enhancedMessage += `\n\n请务必调用函数: ${function_call.name}\n`;
-      }
-    }
-    
-    console.log(`[GeminiCliParameterMapper] 增强消息长度: ${enhancedMessage.length}`);
-    return enhancedMessage;
+    // 此函数现在仅用于保持接口一致性，实际的工具处理已移至 mapToGeminiCliArgs
+    console.log('[GeminiCliParameterMapper] enhanceMessageWithTools 已被调用，但逻辑已转移');
+    return userMessage;
   }
 
   /**
@@ -233,45 +211,58 @@ class GeminiCliParameterMapper {
    * @returns {Object} 解析结果
    */
   parseFunctionCallResponse(geminiOutput, toolsConfig) {
-    const { tools, functions } = toolsConfig;
-    
-    console.log(`[GeminiCliParameterMapper] 开始解析function call响应`);
-    
-    // 尝试从响应中提取JSON格式的function call
-    const jsonMatch = geminiOutput.match(/```json\s*({[\s\S]*?})\s*```/i);
-    
-    if (jsonMatch) {
-      try {
-        const parsed = JSON.parse(jsonMatch[1]);
-        
-        if (parsed.function_call && parsed.function_call.name) {
-          console.log(`[GeminiCliParameterMapper] 检测到function call: ${parsed.function_call.name}`);
-          
-          // 构建OpenAI格式的tool_calls
-          const toolCalls = [{
+    console.log(`[GeminiCliParameterMapper] 开始解析原生function call响应`);
+
+    try {
+      // Gemini CLI的--json输出原生就是JSON
+      const parsedOutput = JSON.parse(geminiOutput);
+
+      // 检查是否存在 tool_code
+      if (parsedOutput.candidates && parsedOutput.candidates[0].content && parsedOutput.candidates[0].content.parts) {
+        const parts = parsedOutput.candidates[0].content.parts;
+        const functionCallParts = parts.filter(part => part.function_call);
+
+        if (functionCallParts.length > 0) {
+          const toolCalls = functionCallParts.map(part => ({
             id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             type: 'function',
             function: {
-              name: parsed.function_call.name,
-              arguments: parsed.function_call.arguments || '{}'
+              name: part.function_call.name,
+              arguments: JSON.stringify(part.function_call.args || {})
             }
-          }];
-          
-          // 移除JSON部分，保留其他内容作为content
-          const content = geminiOutput.replace(/```json[\s\S]*?```/i, '').trim();
-          
+          }));
+
+          const textParts = parts.filter(part => part.text).map(part => part.text).join('\n');
+
           return {
-            content: content || null,
+            content: textParts || null,
             tool_calls: toolCalls,
             finish_reason: 'tool_calls'
           };
         }
-      } catch (error) {
-        console.error(`[GeminiCliParameterMapper] 解析function call JSON失败:`, error.message);
       }
+
+      // 如果没有function call，提取常规文本内容
+      if (parsedOutput.candidates && parsedOutput.candidates[0].content && parsedOutput.candidates[0].content.parts) {
+         const textContent = parsedOutput.candidates[0].content.parts.filter(p => p.text).map(p => p.text).join('');
+         return {
+            content: textContent,
+            tool_calls: null,
+            finish_reason: 'stop'
+         };
+      }
+
+    } catch (error) {
+      console.error(`[GeminiCliParameterMapper] 解析原生Gemini JSON输出失败:`, error.message);
+      // 如果解析失败，可能不是JSON输出，直接返回原始文本
+      return {
+        content: geminiOutput,
+        tool_calls: null,
+        finish_reason: 'stop'
+      };
     }
-    
-    // 如果没有检测到function call，返回原始内容
+
+    // 默认返回
     return {
       content: geminiOutput,
       tool_calls: null,
@@ -279,6 +270,7 @@ class GeminiCliParameterMapper {
     };
   }
 }
+
 
 /**
  * 简单的API Key轮换管理器
