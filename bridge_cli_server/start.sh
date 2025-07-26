@@ -14,14 +14,14 @@ fi
 
 echo "✅ Node.js 版本: $(node --version)"
 
-# 检查 Gemini CLI 是否安装
-if ! command -v gemini &> /dev/null; then
-    echo "❌ 错误: Gemini CLI 未安装"
-    echo "请运行: npm install -g @google/generative-ai-cli"
-    exit 1
-fi
+# # 检查 Gemini CLI 是否安装
+# if ! command -v gemini &> /dev/null; then
+#     echo "❌ 错误: Gemini CLI 未安装"
+#     echo "请运行: npm install -g @google/generative-ai-cli"
+#     exit 1
+# fi
 
-echo "✅ Gemini CLI 已安装"
+# echo "✅ Gemini CLI 已安装"
 
 # 检查依赖是否安装
 if [ ! -d "node_modules" ]; then

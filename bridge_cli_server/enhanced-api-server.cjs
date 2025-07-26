@@ -49,10 +49,12 @@ class EnhancedGeminiApiServer {
     
     // 请求日志
     this.app.use((req, res, next) => {
+      console.log('\n' + '='.repeat(80));
       console.log(`📨 [${new Date().toISOString()}] ${req.method} ${req.path}`);
       if (req.body && Object.keys(req.body).length > 0) {
         console.log(`📋 [请求体] ${JSON.stringify(req.body, null, 2)}`);
       }
+      console.log('='.repeat(80));
       next();
     });
   }
@@ -111,6 +113,9 @@ class EnhancedGeminiApiServer {
         telemetry: true
       }
     });
+    
+    console.log('✅ [健康检查] 请求处理完成');
+    console.log('='.repeat(80) + '\n');
   }
 
   /**
@@ -154,6 +159,9 @@ class EnhancedGeminiApiServer {
         '/v1/rotation/stats': '轮换统计'
       }
     });
+    
+    console.log('✅ [服务信息] 请求处理完成');
+    console.log('='.repeat(80) + '\n');
   }
 
   /**
@@ -195,198 +203,219 @@ class EnhancedGeminiApiServer {
         }
       ]
     });
+    
+    console.log('✅ [模型列表] 请求处理完成');
+    console.log('='.repeat(80) + '\n');
   }
 
   /**
    * 聊天完成处理器
    */
   async handleChatCompletions(req, res) {
+    const apiKey = this.isInitialized ? apiKeyRotator.getNextApiKey() : null;
     try {
       console.log('💬 [聊天完成] 开始处理聊天完成请求');
-      
-      // 从环境变量读取默认参数配置
-      const defaultTemperature = parseFloat(process.env.DEFAULT_TEMPERATURE) || 0.7;
-      const defaultMaxTokens = parseInt(process.env.DEFAULT_MAX_TOKENS) || 1000;
-      const defaultStream = process.env.DEFAULT_STREAM === 'true' || false;
-      const defaultDebug = process.env.DEFAULT_DEBUG === 'true' || false;
-      
-      console.log(`🔧 [聊天完成] 默认参数配置 - temperature: ${defaultTemperature}, max_tokens: ${defaultMaxTokens}, stream: ${defaultStream}, debug: ${defaultDebug}`);
-      
-      // 解构请求参数，使用环境变量中的默认值
-      const { 
-        messages, 
-        model = 'gemini-2.5-pro', 
-        temperature = defaultTemperature,
-        max_tokens = defaultMaxTokens,
-        stream = defaultStream,
-        debug = defaultDebug,
-        tools,
-        tool_choice,
-        function_call,
-        functions,
-        ...otherParams 
-      } = req.body;
-      
-      console.log(`📊 [聊天完成] 实际使用参数 - temperature: ${temperature}, max_tokens: ${max_tokens}, stream: ${stream}, debug: ${debug}`);
-      
-      // 验证必需参数
-      if (!messages || !Array.isArray(messages)) {
-        console.error('❌ [聊天完成] 缺少必需的messages参数');
-        return res.status(400).json({
-          error: {
-            message: 'messages字段是必需的且必须是数组',
-            type: 'invalid_request_error',
-            code: 'missing_messages'
-          }
-        });
-      }
-      
-      // 检查是否有function calling请求
-      const hasFunctionCall = tools || functions || function_call || tool_choice;
-      console.log(`🔧 [聊天完成] Function calling检测: ${hasFunctionCall ? '是' : '否'}`);
-      
-      // 提取用户消息
-      let userMessage = parameterMapper.extractUserMessage(messages);
-      if (!userMessage.trim()) {
-        console.error('❌ [聊天完成] 没有找到有效的用户消息');
-        return res.status(400).json({
-          error: {
-            message: '没有找到有效的用户消息',
-            type: 'invalid_request_error',
-            code: 'no_user_message'
-          }
-        });
-      }
-      
-      // 如果有function calling请求，增强用户消息
-      if (hasFunctionCall) {
-        userMessage = parameterMapper.enhanceMessageWithTools(userMessage, { tools, functions, tool_choice, function_call });
-        console.log(`🛠️ [聊天完成] 已增强消息以支持function calling`);
-      }
-      
-      // 构建请求参数，包含所有参数
-      const requestParams = { 
-        model, 
-        temperature, 
-        max_tokens, 
-        stream, 
-        debug,
-        ...otherParams 
-      };
-      console.log(`📝 [聊天完成] 请求参数: ${JSON.stringify(requestParams, null, 2)}`);
-      
-      // 映射CLI参数
-      const cliArgs = parameterMapper.mapToGeminiCliArgs(requestParams, { tools, functions });
 
-      console.log(`📝 [聊天完成] ssj  CLI参数: ${cliArgs.join(' ')}`);
-      
-      // 获取API Key（如果启用轮换）
-      let apiKey = null;
-      if (this.isInitialized) {
-        apiKey = apiKeyRotator.getNextApiKey();
-        console.log(`🔑 [聊天完成] 使用轮换API Key: ${apiKey ? apiKey.substring(0, 10) + '...' : '无'}`);
+      const { messages, stream = false, ...requestBody } = req.body;
+
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: { message: 'messages字段是必需的且必须是数组', type: 'invalid_request_error' } });
       }
-      
-      // 执行Gemini CLI
-      console.log('🚀 [聊天完成] 开始执行Gemini CLI');
+
+      const { cliArgs, userMessage, hasFunctionCall } = parameterMapper.mapToGeminiCliArgs(requestBody, messages);
+
+      if (!userMessage.trim()) {
+        return res.status(400).json({ error: { message: '没有找到有效的用户消息', type: 'invalid_request_error' } });
+      }
+
+      console.log(`🚀 [聊天完成] 执行Gemini CLI，参数: ${cliArgs.join(' ')}`);
       const geminiOutput = await executeGeminiCli(userMessage, cliArgs, apiKey, hasFunctionCall);
-      
-      // 报告使用结果
+
       if (this.isInitialized && apiKey) {
         apiKeyRotator.reportUsage(apiKey, true);
-        console.log('📊 [聊天完成] 已报告API Key使用成功');
       }
-      
-      // 解析响应，检查是否包含function call
-      let parsedResponse = geminiOutput;
-      let toolCalls = null;
-      let finishReason = 'stop';
-      
-      if (hasFunctionCall) {
-        const parseResult = parameterMapper.parseFunctionCallResponse(geminiOutput, { tools, functions });
-        parsedResponse = parseResult.content;
-        toolCalls = parseResult.tool_calls;
-        finishReason = parseResult.finish_reason;
-        console.log(`🔍 [聊天完成] Function call解析结果: ${toolCalls ? toolCalls.length + '个调用' : '无调用'}`);
-      }
-      
-      // 处理流式响应
+
       if (stream) {
-        console.log('🌊 [聊天完成] 处理流式响应');
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
-        
-        const streamData = {
-          id: 'chatcmpl-' + Date.now(),
-          object: 'chat.completion.chunk',
-          created: Math.floor(Date.now() / 1000),
-          model: model,
-          choices: [{
-            index: 0,
-            delta: {
-              role: 'assistant',
-              content: geminiOutput
-            },
-            finish_reason: 'stop'
-          }]
-        };
-        
-        res.write(`data: ${JSON.stringify(streamData)}\n\n`);
-        res.write('data: [DONE]\n\n');
-        res.end();
+        this.handleStreamResponse(res, geminiOutput, requestBody.model);
       } else {
-        // 非流式响应
-        console.log('📄 [聊天完成] 处理非流式响应');
-        const message = {
-          role: 'assistant',
-          content: parsedResponse
-        };
-        
-        // 如果有tool calls，添加到消息中
-        if (toolCalls && toolCalls.length > 0) {
-          message.tool_calls = toolCalls;
-        }
-        
-        const response = {
-          id: 'chatcmpl-' + Date.now(),
-          object: 'chat.completion',
-          created: Math.floor(Date.now() / 1000),
-          model: model,
-          choices: [{
-            index: 0,
-            message: message,
-            finish_reason: finishReason
-          }],
-          usage: {
-            prompt_tokens: userMessage.length,
-            completion_tokens: geminiOutput.length,
-            total_tokens: userMessage.length + geminiOutput.length
-          }
-        };
-        
-        res.json(response);
+        this.handleJsonResponse(res, geminiOutput, requestBody, userMessage, hasFunctionCall);
       }
-      
+
       console.log('✅ [聊天完成] 请求处理完成');
-      
+      console.log('='.repeat(80) + '\n');
     } catch (error) {
       console.error('❌ [聊天完成] 处理请求时发生错误:', error);
+      if (this.isInitialized && apiKey) {
+        apiKeyRotator.reportUsage(apiKey, false);
+      }
+      console.log('='.repeat(80) + '\n');
+      res.status(500).json({ error: { message: error.message || '内部服务器错误', type: 'api_error', code: 'execution_failed' } });
+    }
+  }
+
+  /**
+   * 处理流式响应
+   */
+  handleStreamResponse(res, geminiOutput, model) {
+    console.log('🌊 [聊天完成] 处理流式响应');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // 检查是否包含思考过程（通过特定标识符判断）
+    const hasReasoningContent = this.extractReasoningContent(geminiOutput);
+    
+    if (hasReasoningContent.reasoning) {
+      // 发送思考过程消息
+      const reasoningMessage = {
+        type: 'say',
+        say: 'reasoning',
+        text: hasReasoningContent.reasoning,
+        ts: Date.now()
+      };
+      res.write(`data: ${JSON.stringify(reasoningMessage)}\n\n`);
       
-      // 报告使用失败
-      if (this.isInitialized && req.apiKey) {
-        apiKeyRotator.reportUsage(req.apiKey, false);
-        console.log('📊 [聊天完成] 已报告API Key使用失败');
+      // 发送最终回复
+      if (hasReasoningContent.finalResponse) {
+        const finalMessage = {
+          type: 'say',
+          say: 'text',
+          text: hasReasoningContent.finalResponse,
+          ts: Date.now()
+        };
+        res.write(`data: ${JSON.stringify(finalMessage)}\n\n`);
+      }
+    } else {
+      // 标准OpenAI格式响应
+      const streamData = {
+        id: 'chatcmpl-' + Date.now(),
+        object: 'chat.completion.chunk',
+        created: Math.floor(Date.now() / 1000),
+        model: model,
+        choices: [{
+          index: 0,
+          delta: { role: 'assistant', content: geminiOutput },
+          finish_reason: 'stop'
+        }]
+      };
+      res.write(`data: ${JSON.stringify(streamData)}\n\n`);
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
+
+  /**
+   * 处理JSON响应
+   */
+  handleJsonResponse(res, geminiOutput, requestBody, userMessage, hasFunctionCall) {
+    console.log('📄 [聊天完成] 处理非流式响应');
+    let parsedResponse = geminiOutput;
+    let toolCalls = null;
+    let finishReason = 'stop';
+
+    if (hasFunctionCall) {
+      const { tools, functions } = requestBody;
+      const parseResult = parameterMapper.parseFunctionCallResponse(geminiOutput, { tools, functions });
+      parsedResponse = parseResult.content;
+      toolCalls = parseResult.tool_calls;
+      finishReason = parseResult.finish_reason;
+    }
+
+    const message = { role: 'assistant', content: parsedResponse };
+    if (toolCalls && toolCalls.length > 0) {
+      message.tool_calls = toolCalls;
+    }
+
+    const response = {
+      id: 'chatcmpl-' + Date.now(),
+      object: 'chat.completion',
+      created: Math.floor(Date.now() / 1000),
+      model: requestBody.model,
+      choices: [{
+        index: 0,
+        message: message,
+        finish_reason: finishReason
+      }],
+      usage: {
+        prompt_tokens: userMessage.length,
+        completion_tokens: geminiOutput.length,
+        total_tokens: userMessage.length + geminiOutput.length
+      }
+    };
+
+    res.json(response);
+  }
+
+  /**
+   * 提取思考过程内容
+   * @param {string} output - Gemini的原始输出
+   * @returns {Object} 包含reasoning和finalResponse的对象
+   */
+  extractReasoningContent(output) {
+    // 尝试解析JSON格式的输出
+    try {
+      const parsed = JSON.parse(output);
+      
+      // 检查是否有思考过程标识
+      if (parsed.candidates && Array.isArray(parsed.candidates) && parsed.candidates.length > 0 && parsed.candidates[0] && parsed.candidates[0].content) {
+        const content = parsed.candidates[0].content;
+        const parts = content.parts || [];
+        
+        let reasoning = '';
+        let finalResponse = '';
+        
+        // 查找思考过程和最终回复
+        for (const part of parts) {
+          if (part.text) {
+            const text = part.text;
+            
+            // 检查是否包含思考过程标识符
+            if (text.includes('思考过程') || text.includes('分析') || text.includes('推理') || 
+                text.includes('thinking') || text.includes('reasoning') || text.includes('analysis')) {
+              reasoning = text;
+            } else {
+              finalResponse += text;
+            }
+          }
+        }
+        
+        if (reasoning) {
+          return { reasoning: reasoning.trim(), finalResponse: finalResponse.trim() };
+        }
+      }
+    } catch (e) {
+      // 如果不是JSON格式，尝试文本解析
+      const lines = output.split('\n');
+      let reasoning = '';
+      let finalResponse = '';
+      let inReasoningSection = false;
+      
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        
+        // 检查思考过程开始标识
+        if (trimmedLine.includes('思考过程') || trimmedLine.includes('分析') || 
+            trimmedLine.includes('thinking') || trimmedLine.includes('reasoning')) {
+          inReasoningSection = true;
+          reasoning += line + '\n';
+        } else if (inReasoningSection && (trimmedLine.includes('回复') || trimmedLine.includes('答案') || 
+                   trimmedLine.includes('response') || trimmedLine.includes('answer'))) {
+          inReasoningSection = false;
+          finalResponse += line + '\n';
+        } else if (inReasoningSection) {
+          reasoning += line + '\n';
+        } else {
+          finalResponse += line + '\n';
+        }
       }
       
-      res.status(500).json({
-        error: {
-          message: error.message || '内部服务器错误',
-          type: 'api_error',
-          code: 'execution_failed'
-        }
-      });
+      if (reasoning.trim()) {
+        return { reasoning: reasoning.trim(), finalResponse: finalResponse.trim() };
+      }
     }
+    
+    return { reasoning: null, finalResponse: output };
   }
 
   /**
@@ -430,6 +459,9 @@ class EnhancedGeminiApiServer {
         timestamp: new Date().toISOString()
       });
       
+      console.log('✅ [Gemini执行] 请求处理完成');
+      console.log('='.repeat(80) + '\n');
+      
     } catch (error) {
       console.error('❌ [Gemini执行] 执行失败:', error);
       
@@ -438,6 +470,8 @@ class EnhancedGeminiApiServer {
         error: error.message,
         timestamp: new Date().toISOString()
       });
+      
+      console.log('='.repeat(80) + '\n');
     }
   }
 
@@ -457,6 +491,9 @@ class EnhancedGeminiApiServer {
         timestamp: new Date().toISOString()
       });
       
+      console.log('✅ [扩展列表] 请求处理完成');
+      console.log('='.repeat(80) + '\n');
+      
     } catch (error) {
       console.error('❌ [扩展列表] 获取失败:', error);
       
@@ -465,6 +502,8 @@ class EnhancedGeminiApiServer {
         error: error.message,
         timestamp: new Date().toISOString()
       });
+      
+      console.log('='.repeat(80) + '\n');
     }
   }
 
@@ -475,10 +514,14 @@ class EnhancedGeminiApiServer {
     console.log('🔄 [轮换状态] 获取轮换状态');
     
     if (!this.isInitialized) {
-      return res.json({
+      res.json({
         enabled: false,
         message: '轮换功能未初始化'
       });
+      
+      console.log('✅ [轮换状态] 请求处理完成');
+      console.log('='.repeat(80) + '\n');
+      return;
     }
     
     const stats = apiKeyRotator.getUsageStats();
@@ -488,6 +531,9 @@ class EnhancedGeminiApiServer {
       ...stats,
       timestamp: new Date().toISOString()
     });
+    
+    console.log('✅ [轮换状态] 请求处理完成');
+    console.log('='.repeat(80) + '\n');
   }
 
   /**
@@ -497,10 +543,14 @@ class EnhancedGeminiApiServer {
     console.log('📊 [轮换统计] 获取详细统计');
     
     if (!this.isInitialized) {
-      return res.json({
+      res.json({
         enabled: false,
         message: '轮换功能未初始化'
       });
+      
+      console.log('✅ [轮换统计] 请求处理完成');
+      console.log('='.repeat(80) + '\n');
+      return;
     }
     
     const stats = apiKeyRotator.getUsageStats();
@@ -517,6 +567,9 @@ class EnhancedGeminiApiServer {
       details: stats.keyDetails,
       timestamp: new Date().toISOString()
     });
+    
+    console.log('✅ [轮换统计] 请求处理完成');
+    console.log('='.repeat(80) + '\n');
   }
 
   /**

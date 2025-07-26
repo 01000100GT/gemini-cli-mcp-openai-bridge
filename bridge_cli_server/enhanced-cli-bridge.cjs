@@ -35,129 +35,49 @@ class GeminiCliParameterMapper {
    * @param {Object} openaiRequest - OpenAI格式的请求参数
    * @returns {Array} gemini CLI命令参数数组
    */
-  mapToGeminiCliArgs(openaiRequest, toolsConfig = {}) {
+  mapToGeminiCliArgs(requestBody, messages) {
+    const { model, tools, functions, tool_choice, function_call, ...otherParams } = requestBody;
     const args = [];
-    const { tools, functions } = toolsConfig;
 
-    console.log('[GeminiCliParameterMapper] 开始映射参数:', JSON.stringify(openaiRequest, null, 2));
+    // 定义gemini-cli支持的参数列表
+    const supportedParams = [
+      'model', 'prompt', 'prompt-interactive', 'sandbox', 'sandbox-image',
+      'debug', 'all-files', 'show-memory-usage', 'yolo', 'telemetry',
+      'telemetry-target', 'telemetry-otlp-endpoint', 'telemetry-log-prompts',
+      'checkpointing', 'experimental-acp', 'allowed-mcp-server-names',
+      'extensions', 'list-extensions', 'ide-mode', 'proxy', 'version', 'help'
+    ];
 
-    // 如果有工具，强制使用JSON输出
-    const hasTools = (tools && tools.length > 0) || (functions && functions.length > 0);
-    if (hasTools) {
+    const userMessage = this.extractUserMessage(messages);
+    const hasFunctionCall = tools || functions || tool_choice || function_call;
+
+    if (hasFunctionCall) {
       args.push('--json');
-      console.log('[GeminiCliParameterMapper] 检测到工具，启用--json输出模式');
-
       const allFunctions = [];
-      if (tools && Array.isArray(tools)) {
-        tools.forEach(tool => {
-          if (tool.type === 'function' && tool.function) {
-            allFunctions.push(tool.function);
-          }
-        });
-      }
-      if (functions && Array.isArray(functions)) {
-        allFunctions.push(...functions);
-      }
-
+      if (tools) allFunctions.push(...tools.map(t => t.function));
+      if (functions) allFunctions.push(...functions);
       if (allFunctions.length > 0) {
-        const geminiTools = JSON.stringify({ function_declarations: allFunctions });
-        args.push('--tools', geminiTools);
-        console.log('[GeminiCliParameterMapper] 添加 --tools 参数');
+        args.push('--tools', JSON.stringify({ function_declarations: allFunctions }));
       }
     }
 
-    // 模型参数映射
-    if (openaiRequest.model) {
-      const geminiModel = this.modelMapping[openaiRequest.model] || openaiRequest.model;
-      args.push('--model', geminiModel);
-      console.log(`[GeminiCliParameterMapper] 映射模型: ${openaiRequest.model} -> ${geminiModel}`);
+    if (model) {
+      args.push('--model', this.modelMapping[model] || model);
     }
-    
-    // 调试模式 - 独立控制
-    if (openaiRequest.debug) {
-      args.push('--debug');
-      console.log('[GeminiCliParameterMapper] 启用调试模式');
-    }
-    
-    // 沙盒模式 - 从自定义参数中获取
-    if (openaiRequest.sandbox) {
-      args.push('--sandbox');
-      console.log('[GeminiCliParameterMapper] 启用沙盒模式');
-      
-      if (openaiRequest.sandbox_image) {
-        args.push('--sandbox-image', openaiRequest.sandbox_image);
-        console.log(`[GeminiCliParameterMapper] 设置沙盒镜像: ${openaiRequest.sandbox_image}`);
+
+    Object.entries(otherParams).forEach(([key, value]) => {
+      const cliOption = key.replace(/_/g, '-');
+      if (supportedParams.includes(cliOption)) {
+        const cliOptionWithPrefix = `--${cliOption}`;
+        if (value === true) {
+          args.push(cliOptionWithPrefix);
+        } else if (value !== false && value !== null && value !== undefined) {
+          args.push(cliOptionWithPrefix, value.toString());
+        }
       }
-    }
-    
-    // 包含所有文件上下文 - 只有在明确请求时才启用
-    // 默认值为false，需要显式设置为true才会包含文件
-    if (openaiRequest.all_files === true || openaiRequest.include_all_files === true) {
-      args.push('--all-files');
-      console.log('[GeminiCliParameterMapper] 明确启用所有文件上下文');
-    } else {
-      console.log('[GeminiCliParameterMapper] 默认不包含文件上下文（需要显式启用）');
-    }
-    
-    // 显示内存使用情况
-    if (openaiRequest.show_memory_usage) {
-      args.push('--show-memory-usage');
-      console.log('[GeminiCliParameterMapper] 启用内存使用显示');
-    }
-    
-    // YOLO模式（自动接受所有操作）
-    if (openaiRequest.yolo || openaiRequest.auto_accept) {
-      args.push('--yolo');
-      console.log('[GeminiCliParameterMapper] 启用YOLO模式');
-    }
-    
-    // 检查点功能
-    if (openaiRequest.checkpointing) {
-      args.push('--checkpointing');
-      console.log('[GeminiCliParameterMapper] 启用检查点功能');
-    }
-    
-    // MCP服务器名称限制
-    if (openaiRequest.allowed_mcp_servers && Array.isArray(openaiRequest.allowed_mcp_servers)) {
-      openaiRequest.allowed_mcp_servers.forEach(server => {
-        args.push('--allowed-mcp-server-names', server);
-      });
-      console.log(`[GeminiCliParameterMapper] 设置允许的MCP服务器: ${openaiRequest.allowed_mcp_servers.join(', ')}`);
-    }
-    
-    // 扩展配置
-    if (openaiRequest.extensions && Array.isArray(openaiRequest.extensions)) {
-      openaiRequest.extensions.forEach(ext => {
-        args.push('--extensions', ext);
-      });
-      console.log(`[GeminiCliParameterMapper] 设置扩展: ${openaiRequest.extensions.join(', ')}`);
-    }
-    
-    // 遥测配置
-    if (openaiRequest.telemetry !== undefined) {
-      if (openaiRequest.telemetry) {
-        args.push('--telemetry');
-        console.log('[GeminiCliParameterMapper] 启用遥测');
-      }
-      
-      if (openaiRequest.telemetry_target) {
-        args.push('--telemetry-target', openaiRequest.telemetry_target);
-        console.log(`[GeminiCliParameterMapper] 设置遥测目标: ${openaiRequest.telemetry_target}`);
-      }
-      
-      if (openaiRequest.telemetry_otlp_endpoint) {
-        args.push('--telemetry-otlp-endpoint', openaiRequest.telemetry_otlp_endpoint);
-        console.log(`[GeminiCliParameterMapper] 设置OTLP端点: ${openaiRequest.telemetry_otlp_endpoint}`);
-      }
-      
-      if (openaiRequest.telemetry_log_prompts !== undefined) {
-        args.push('--telemetry-log-prompts', openaiRequest.telemetry_log_prompts.toString());
-        console.log(`[GeminiCliParameterMapper] 设置遥测日志提示: ${openaiRequest.telemetry_log_prompts}`);
-      }
-    }
-    
-    console.log('[GeminiCliParameterMapper] 最终CLI参数:', args);
-    return args;
+    });
+
+    return { cliArgs: args, userMessage, hasFunctionCall };
   }
 
   /**
@@ -508,6 +428,36 @@ const parameterMapper = new GeminiCliParameterMapper();
 const apiKeyRotator = new SimpleApiKeyRotator('./rotation-state.json');
 
 /**
+ * 从Gemini响应中提取文本内容
+ * @param {Object} parsedOutput - 解析后的Gemini JSON响应
+ * @returns {string} 提取的文本内容
+ */
+function extractTextFromGeminiResponse(parsedOutput) {
+  try {
+    if (parsedOutput.candidates && Array.isArray(parsedOutput.candidates) && parsedOutput.candidates.length > 0 && parsedOutput.candidates[0]) {
+      const candidate = parsedOutput.candidates[0];
+      
+      if (candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+        // 合并所有文本部分
+        const textParts = candidate.content.parts
+          .filter(part => part && part.text)
+          .map(part => part.text)
+          .join('\n');
+        
+        console.log(`📄 [extractTextFromGeminiResponse] 提取到文本内容，长度: ${textParts.length}`);
+        return textParts;
+      }
+    }
+    
+    console.log(`⚠️ [extractTextFromGeminiResponse] 未找到有效的文本内容`);
+    return null;
+  } catch (error) {
+    console.error(`❌ [extractTextFromGeminiResponse] 提取文本时发生错误: ${error.message}`);
+    return null;
+  }
+}
+
+/**
  * 计算执行超时时间
  * @param {Array} cliArgs - CLI参数数组
  * @param {boolean} hasTools - 是否包含function calling
@@ -573,7 +523,8 @@ function executeGeminiCli(userMessage, cliArgs = [], apiKey = null, hasTools = f
     const workDir = process.env.GEMINI_WORK_DIR || require('os').tmpdir();
     console.log(`📁 [executeGeminiCli] 使用工作目录: ${workDir}`);
     
-    const child = spawn('gemini', fullArgs, {
+    const geminiPath = path.resolve(__dirname, 'node_modules/.bin/gemini');
+    const child = spawn(geminiPath, fullArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: env,
       cwd: workDir  // 使用配置的工作目录，避免扫描项目文件
@@ -599,7 +550,27 @@ function executeGeminiCli(userMessage, cliArgs = [], apiKey = null, hasTools = f
       
       if (code === 0) {
         console.log(`✅ [executeGeminiCli] 执行成功，输出长度: ${output.length}`);
-        resolve(output);
+        
+        // 处理输出，无论是否有工具调用都进行智能解析
+        try {
+          // 首先尝试解析为JSON
+          const parsedOutput = JSON.parse(output);
+          
+          if (hasTools) {
+            console.log('🛠️ [executeGeminiCli] 检测到工具调用，处理结构化输出');
+            // 对于工具调用，保持原始JSON结构
+            resolve(output);
+          } else {
+            console.log('💭 [executeGeminiCli] 处理常规对话输出');
+            // 对于常规对话，提取文本内容
+            const textContent = extractTextFromGeminiResponse(parsedOutput);
+            resolve(textContent || output);
+          }
+        } catch (e) {
+          console.log(`📝 [executeGeminiCli] 输出不是JSON格式，直接返回文本内容`);
+          // 如果不是JSON，直接返回原始输出
+          resolve(output);
+        }
       } else {
         console.error(`❌ [executeGeminiCli] 执行失败，退出码: ${code}`);
         console.error(`❌ [executeGeminiCli] 错误输出: ${errorOutput}`);
